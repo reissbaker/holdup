@@ -13,3 +13,10 @@ describe 'Promise', ->
     )
     promise.fulfill()
 
+  it 'should fire its `then` errback when failed', (done) ->
+    promise.then(
+      -> expect(false).to.be true
+      -> done()
+    )
+    promise.fail()
+
