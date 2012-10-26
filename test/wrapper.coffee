@@ -44,3 +44,21 @@ describe 'promise.make', ->
       done()
 
 describe 'promise.timeout', ->
+  it 'should fire callbacks asynchronously', (done) ->
+    async = false
+    timed = promise.timeout 50
+    timed.then ->
+      expect(async).to.be true
+      done()
+    async = true
+
+  it 'should fire timers in order', (done) ->
+    called = false
+    timed = promise.timeout 100
+    timed.then ->
+      expect(called).to.be true
+      done()
+    setTimeout ->
+      called = true
+    , 10
+
