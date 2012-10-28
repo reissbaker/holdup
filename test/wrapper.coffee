@@ -62,3 +62,57 @@ describe 'promise.timeout', ->
       called = true
     , 10
 
+describe 'promise.compose', ->
+  it 'should compose two promises into a single one', (done) ->
+    ran = false
+    a = new Promise
+    b = new Promise
+    c = promise.compose a, b
+    expect(c.unfulfilled()).to.be true
+
+    c.then ->
+      expect(ran).to.be true
+      done()
+    a.fulfill()
+    ran = true
+    b.fulfill()
+
+  it 'should fail as soon as any of the composed promises fail', (done) ->
+    a = new Promise
+    b = new Promise
+    c = promise.compose a, b
+
+    c.then null, -> done()
+    a.fail()
+
+  it 'should compose more than two promises into one', (done) ->
+    ran = false
+    a = new Promise
+    b = new Promise
+    c = new Promise
+    d = promise.compose a, b, c
+
+    d.then ->
+      expect(ran).to.be true
+      done()
+
+    a.fulfill()
+    b.fulfill()
+    ran = true
+    c.fulfill()
+
+  it 'should flatten any arrays of promises passed into it', (done) ->
+    ran = false
+    a = [new Promise, new Promise]
+    b = [new Promise]
+    c = new Promise
+    d = promise.compose a, b, c
+    d.then ->
+      expect(ran).to.be true
+      done()
+
+    c.fulfill()
+    a[0].fulfill()
+    a[1].fulfill()
+    ran = true
+    b[0].fulfill()
