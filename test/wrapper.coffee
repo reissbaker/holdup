@@ -116,3 +116,35 @@ describe 'promise.compose', ->
     a[1].fulfill()
     ran = true
     b[0].fulfill()
+
+  it 'should pass the first error given to it to the composed errback', (done) ->
+    a = new Promise
+    b = new Promise
+    c = promise.compose a, b
+    c.then null, (err) ->
+      expect(err).to.be 'error'
+      done()
+    a.fail 'error'
+
+  it 'should pass the data the promises receive into the composed callback as an array', (done) ->
+    a = new Promise
+    b = new Promise
+    c = promise.compose a, b
+    c.then (data) ->
+      expect(data[0]).to.be 1
+      expect(data[1]).to.be 10
+      done()
+    a.fulfill 1
+    b.fulfill 10
+
+  it 'should pass the data the promises receive in order of the promises', (done) ->
+    a = new Promise
+    b = new Promise
+    c = promise.compose a, b
+    c.then (data) ->
+      expect(data[0]).to.be 1
+      expect(data[1]).to.be 10
+      done()
+
+    b.fulfill 10
+    a.fulfill 1
