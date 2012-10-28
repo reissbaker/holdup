@@ -148,3 +148,39 @@ describe 'promise.compose', ->
 
     b.fulfill 10
     a.fulfill 1
+
+
+describe 'promise.wait', ->
+  it 'should pass the first error given to it to the composed errback', (done) ->
+    a = new Promise
+    b = new Promise
+    c = promise.wait a, b
+    c.then null, (err) ->
+      expect(err).to.be 'err'
+      done()
+    a.fail 'err'
+
+  it 'should pass the composed arguments as an argument list to the callback', (done) ->
+    a = new Promise
+    b = new Promise
+    c = new Promise
+    d = promise.wait a, b, c
+    d.then (a, b, c) ->
+      expect(a).to.be 1
+      expect(b).to.be 10
+      expect(c).to.be 50
+      done()
+    a.fulfill 1
+    b.fulfill 10
+    c.fulfill 50
+
+  it 'should pass the composed arguments in the order of the promises', (done) ->
+    a = new Promise
+    b = new Promise
+    c = promise.wait a, b
+    c.then (a, b) ->
+      expect(a).to.be 1
+      expect(b).to.be 10
+      done()
+    b.fulfill 10
+    a.fulfill 1
