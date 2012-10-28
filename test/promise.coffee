@@ -82,5 +82,21 @@ describe 'Promise', ->
     promise.fail()
     promise.then null, -> done()
 
-  # TODO: test states (failed, fulfilled, unfulfilled)
+  it 'should be unfulfilled when unfulfilled, and nothing else', ->
+    expect(promise.unfulfilled()).to.be true
+    expect(promise.fulfilled()).to.be false
+    expect(promise.failed()).to.be false
+
+  it 'should be fulfilled when fulfilled, and nothing else', ->
+    promise.fulfill()
+    expect(promise.fulfilled()).to.be true
+    expect(promise.unfulfilled()).to.be false
+    expect(promise.failed()).to.be false
+
+  it 'should be failed when failed, and nothing else', ->
+    promise.fail()
+    expect(promise.failed()).to.be true
+    expect(promise.unfulfilled()).to.be false
+    expect(promise.fulfilled()).to.be false
+
   # ALSO TODO: test multiple arguments passed to a fulfill() or fail()
