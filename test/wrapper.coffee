@@ -187,8 +187,91 @@ describe 'promise.any', ->
 
 
 describe 'promise.firstFulfilled', ->
+  it 'should fulfill as soon as any have fulfilled', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.firstFulfilled a, b
+    composed.then -> done()
+    a.fulfill()
+
+  it 'should fulfill even if one rejects', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.firstFulfilled a, b
+    composed.then -> done()
+    a.reject()
+    b.fulfill()
+
+  it 'should reject if all reject', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.firstFulfilled a, b
+    composed.then null, -> done()
+    a.reject()
+    b.reject()
+
+  it 'should pass the first to fulfill to its callback', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.firstFulfilled a, b
+    composed.then (winner) ->
+      expect(winner).to.be a
+      done()
+    a.fulfill()
+
+  it 'should pass all fulfilled promises to its errback', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.firstFulfilled a, b
+    composed.then null, (rejected) ->
+      expect(rejected).to.eql [a, b]
+      done()
+    a.reject()
+    b.reject()
+
 
 describe 'promise.firstRejected', ->
+  it 'should fulfill as soon as any have rejected', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.firstRejected a, b
+    composed.then -> done()
+    a.reject()
+
+  it 'should fulfill even if one fulfills', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.firstRejected a, b
+    composed.then -> done()
+    b.fulfill()
+    a.reject()
+
+  it 'should reject if all fulfill', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.firstRejected a, b
+    composed.then null, -> done()
+    a.fulfill()
+    b.fulfill()
+
+  it 'should pass the first to reject to its callback', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.firstRejected a, b
+    composed.then (winner) ->
+      expect(winner).to.be a
+      done()
+    a.reject()
+
+  it 'should pass all fulfilled promises to its errback', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.firstRejected a, b
+    composed.then null, (fulfilled) ->
+      expect(fulfilled).to.eql [a, b]
+      done()
+    a.fulfill()
+    b.fulfill()
 
 describe 'promise.lastFulfilled', ->
 
