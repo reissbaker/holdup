@@ -2,6 +2,57 @@ expect = require 'expect.js'
 {Promise} = require '../lib/promise'
 promise = require '../lib/wrapper'
 
+describe 'promise.all', ->
+  it 'should wait for one promise to run', (done) ->
+    fired = false
+    initial = new Promise
+    initial.then ->
+      fired = true
+    composed = promise.all initial
+    composed.then ->
+      expect(fired).to.be.ok()
+      done()
+    initial.fulfill()
+  it 'should error if it\'s one promise errors', (done) ->
+    initial = new Promise
+    composed = promise.all initial
+    composed.then null, -> done()
+    initial.reject()
+  it 'should return the rejected promise', (done) ->
+    initial = new Promise
+    composed = promise.all initial
+    composed.then null, (rejected) ->
+      expect(rejected).to.be initial
+      done()
+    initial.reject()
+  it 'should wait for multiple promises to fulfill', (done) ->
+    lastFired = false
+    a = new Promise
+    b = new Promise
+    b.then -> lastFired = true
+    composed = promise.all a, b
+    composed.then ->
+      expect(lastFired).to.be.ok()
+      done()
+    a.fulfill()
+    b.fulfill()
+  it 'should immediately reject if any fail', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.all a, b
+    composed.then null, -> done()
+    b.reject()
+  it 'should return the first rejected promise', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.all a, b
+    composed.then null, (rejected) ->
+      expect(rejected).to.be b
+      done()
+    b.reject()
+    a.reject()
+
+
 describe 'promise.make', ->
   it 'should wrap Node-style async functions with no arguments', (done) ->
     fn = (callback) -> callback(null, 10)
