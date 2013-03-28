@@ -99,4 +99,19 @@ describe 'Promise', ->
     expect(promise.pending()).to.be false
     expect(promise.fulfilled()).to.be false
 
-  # ALSO TODO: test multiple arguments passed to a fulfill() or fail()
+  it 'should pass along fulfilled arguments to child promises', (done) ->
+    child = promise.then()
+    promise.fulfill 'hello'
+    child.then (data) ->
+      expect(data).to.be 'hello'
+      done()
+
+  it 'should pass along rejected arguments to child promises', (done) ->
+    child = promise.then()
+    promise.reject 'no'
+    child.then null, (err) ->
+      expect(err).to.be 'no'
+      done()
+
+
+  # ALSO TODO: test multiple arguments passed to a fulfill() or reject()
