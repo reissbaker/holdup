@@ -57,6 +57,61 @@ describe 'promise.all', ->
     b.reject()
     a.reject()
 
+describe 'promise.none', ->
+  it 'should wait for one promise to be rejected', (done) ->
+    fired = false
+    initial = new Promise
+    initial.then null, ->
+      fired = true
+    composed = promise.none initial
+    composed.then ->
+      expect(fired).to.be.ok()
+      done()
+    initial.reject()
+
+  it 'should error if it\'s one promise fulfills', (done) ->
+    initial = new Promise
+    composed = promise.none initial
+    composed.then null, -> done()
+    initial.fulfill()
+
+  it 'should return the fulfilled promise when rejecting', (done) ->
+    initial = new Promise
+    composed = promise.none initial
+    composed.then null, (fulfilled) ->
+      expect(fulfilled).to.be initial
+      done()
+    initial.fulfill()
+
+  it 'should wait for multiple promises to reject', (done) ->
+    lastFired = false
+    a = new Promise
+    b = new Promise
+    b.then null, -> lastFired = true
+    composed = promise.none a, b
+    composed.then ->
+      expect(lastFired).to.be.ok()
+      done()
+    a.reject()
+    b.reject()
+
+  it 'should immediately reject if any fulfill', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.none a, b
+    composed.then null, -> done()
+    b.fulfill()
+
+  it 'should return the first fulfilled promise', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.none a, b
+    composed.then null, (fulfilled) ->
+      expect(fulfilled).to.be b
+      done()
+    b.fulfill()
+    a.fulfill()
+
 
 describe 'promise.make', ->
   it 'should wrap Node-style async functions with no arguments', (done) ->
