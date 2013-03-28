@@ -113,6 +113,80 @@ describe 'promise.none', ->
     a.fulfill()
 
 
+describe 'promise.any', ->
+  it 'should wait for one promise to fulfill', (done) ->
+    fired = false
+    initial = new Promise
+    initial.then -> fired = true
+    composed = promise.any initial
+    composed.then ->
+      expect(fired).to.be.ok()
+      done()
+    initial.fulfill()
+  
+  it 'should wait for one promise to reject', (done) ->
+    fired = false
+    initial = new Promise
+    initial.then null, -> fired = true
+    composed = promise.any initial
+    composed.then ->
+      expect(fired).to.be.ok()
+      done()
+    initial.reject()
+  
+  it 'should wait for multiple promises to fulfill', (done) ->
+    lastFired = false
+    a = new Promise
+    b = new Promise
+    b.then -> lastFired = true
+    composed = promise.any a, b
+    composed.then ->
+      expect(lastFired).to.be.ok()
+      done()
+    a.fulfill()
+    b.fulfill()
+
+  it 'should wait for multiple promises to reject', (done) ->
+    lastFired = false
+    a = new Promise
+    b = new Promise
+    b.then null, -> lastFired = true
+    composed = promise.any a, b
+    composed.then ->
+      expect(lastFired).to.be.ok()
+      done()
+    a.reject()
+    b.reject()
+
+  it 'should wait for a mixture of fulfillment and rejection', (done) ->
+    lastFired = false
+    a = new Promise
+    b = new Promise
+    b.then -> lastFired = true
+    composed = promise.any a, b
+    composed.then ->
+      expect(lastFired).to.be.ok()
+      done()
+    a.reject()
+    b.fulfill()
+  
+  it 'should pass the lists of fulfilled and rejected promises', (done) ->
+    a = new Promise
+    b = new Promise
+    c = new Promise
+    d = new Promise
+    composed = promise.any a, b, c ,d
+    composed.then (fulfilled, rejected) ->
+      expect(fulfilled).to.eql [a, b]
+      expect(rejected).to.eql [c, d]
+      done()
+    a.fulfill()
+    c.reject()
+    b.fulfill()
+    d.reject()
+
+
+
 describe 'promise.make', ->
   it 'should wrap Node-style async functions with no arguments', (done) ->
     fn = (callback) -> callback(null, 10)
