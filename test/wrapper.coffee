@@ -27,11 +27,11 @@ describe 'promise.make', ->
       expect(data[1]).to.be 10
       done()
 
-  it 'should fail when the async function errors out', (done) ->
-    fn = (callback) -> callback 'failure'
+  it 'should reject when the async function errors out', (done) ->
+    fn = (callback) -> callback 'rejecture'
     wrapped = promise.make null, fn
     wrapped.then null, (err) ->
-      expect(err).to.be 'failure'
+      expect(err).to.be 'rejecture'
       done()
 
   it 'should call functions with the given scope', (done) ->
@@ -68,7 +68,7 @@ describe 'promise.compose', ->
     a = new Promise
     b = new Promise
     c = promise.compose a, b
-    expect(c.unfulfilled()).to.be true
+    expect(c.pending()).to.be true
 
     c.then ->
       expect(ran).to.be true
@@ -77,13 +77,13 @@ describe 'promise.compose', ->
     ran = true
     b.fulfill()
 
-  it 'should fail as soon as any of the composed promises fail', (done) ->
+  it 'should reject as soon as any of the composed promises reject', (done) ->
     a = new Promise
     b = new Promise
     c = promise.compose a, b
 
     c.then null, -> done()
-    a.fail()
+    a.reject()
 
   it 'should compose more than two promises into one', (done) ->
     ran = false
@@ -124,7 +124,7 @@ describe 'promise.compose', ->
     c.then null, (err) ->
       expect(err).to.be 'error'
       done()
-    a.fail 'error'
+    a.reject 'error'
 
   it 'should pass the data the promises receive into the composed callback as an array', (done) ->
     a = new Promise
@@ -158,7 +158,7 @@ describe 'promise.wait', ->
     c.then null, (err) ->
       expect(err).to.be 'err'
       done()
-    a.fail 'err'
+    a.reject 'err'
 
   it 'should pass the composed arguments as an argument list to the callback', (done) ->
     a = new Promise

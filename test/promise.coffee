@@ -13,12 +13,12 @@ describe 'Promise', ->
     )
     promise.fulfill()
 
-  it 'should fire its `then` errback when failed', (done) ->
+  it 'should fire its `then` errback when rejected', (done) ->
     promise.then(
       -> expect(false).to.be true
       -> done()
     )
-    promise.fail()
+    promise.reject()
 
   it 'should have optional errbacks', (done) ->
     promise.then -> done()
@@ -26,7 +26,7 @@ describe 'Promise', ->
 
   it 'should have optional callbacks', (done) ->
     promise.then null, -> done()
-    promise.fail()
+    promise.reject()
 
   it 'should pass the data given to it in its `fulfill` call to its callback', (done) ->
     promise.then (data) ->
@@ -34,34 +34,34 @@ describe 'Promise', ->
       done()
     promise.fulfill 100
 
-  it 'should pass the data given to it in its `fail` call to its errback', (done) ->
+  it 'should pass the data given to it in its `reject` call to its errback', (done) ->
     promise.then null, (err) ->
       expect(err).to.be 100
       done()
-    promise.fail 100
+    promise.reject 100
 
-  it 'should not be able to fail after being fulfilled', ->
+  it 'should not be able to reject after being fulfilled', ->
     called = 0
     promise.then(
       -> called++
       -> called++
     )
     promise.fulfill()
-    promise.fail()
+    promise.reject()
     expect(called).to.be 1
     expect(promise.fulfilled()).to.be true
-    expect(promise.failed()).to.be false
+    expect(promise.rejected()).to.be false
 
-  it 'should not be able to be fulfilled after failing', ->
+  it 'should not be able to be fulfilled after rejecting', ->
     called = 0
     promise.then(
       -> called++
       -> called++
     )
-    promise.fail()
+    promise.reject()
     promise.fulfill()
     expect(called).to.be 1
-    expect(promise.failed()).to.be true
+    expect(promise.rejected()).to.be true
     expect(promise.fulfilled()).to.be false
 
   it 'should have its fulfill function be idempotent', (done) ->
@@ -69,34 +69,34 @@ describe 'Promise', ->
     promise.fulfill()
     promise.fulfill()
 
-  it 'should have its fail function be idempotent', (done) ->
+  it 'should have its reject function be idempotent', (done) ->
     promise.then null, -> done()
-    promise.fail()
-    promise.fail()
+    promise.reject()
+    promise.reject()
 
   it 'should execute callbacks if already fulfilled', (done) ->
     promise.fulfill()
     promise.then -> done()
 
-  it 'should execute errbacks if already failed', (done) ->
-    promise.fail()
+  it 'should execute errbacks if already rejected', (done) ->
+    promise.reject()
     promise.then null, -> done()
 
   it 'should be unfulfilled when unfulfilled, and nothing else', ->
-    expect(promise.unfulfilled()).to.be true
+    expect(promise.pending()).to.be true
     expect(promise.fulfilled()).to.be false
-    expect(promise.failed()).to.be false
+    expect(promise.rejected()).to.be false
 
   it 'should be fulfilled when fulfilled, and nothing else', ->
     promise.fulfill()
     expect(promise.fulfilled()).to.be true
-    expect(promise.unfulfilled()).to.be false
-    expect(promise.failed()).to.be false
+    expect(promise.pending()).to.be false
+    expect(promise.rejected()).to.be false
 
-  it 'should be failed when failed, and nothing else', ->
-    promise.fail()
-    expect(promise.failed()).to.be true
-    expect(promise.unfulfilled()).to.be false
+  it 'should be rejected when rejected, and nothing else', ->
+    promise.reject()
+    expect(promise.rejected()).to.be true
+    expect(promise.pending()).to.be false
     expect(promise.fulfilled()).to.be false
 
   # ALSO TODO: test multiple arguments passed to a fulfill() or fail()
