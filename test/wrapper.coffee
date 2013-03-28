@@ -186,6 +186,15 @@ describe 'promise.any', ->
     d.reject()
 
 
+describe 'promise.firstFulfilled', ->
+
+describe 'promise.firstRejected', ->
+
+describe 'promise.lastFulfilled', ->
+
+describe 'promise.lastRejected', ->
+
+
 
 describe 'promise.wrap', ->
   it 'should wrap Node-style async functions with no arguments', (done) ->
