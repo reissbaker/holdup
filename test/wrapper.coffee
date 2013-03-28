@@ -13,11 +13,13 @@ describe 'promise.all', ->
       expect(fired).to.be.ok()
       done()
     initial.fulfill()
+
   it 'should error if it\'s one promise errors', (done) ->
     initial = new Promise
     composed = promise.all initial
     composed.then null, -> done()
     initial.reject()
+
   it 'should return the rejected promise', (done) ->
     initial = new Promise
     composed = promise.all initial
@@ -25,6 +27,7 @@ describe 'promise.all', ->
       expect(rejected).to.be initial
       done()
     initial.reject()
+
   it 'should wait for multiple promises to fulfill', (done) ->
     lastFired = false
     a = new Promise
@@ -36,12 +39,14 @@ describe 'promise.all', ->
       done()
     a.fulfill()
     b.fulfill()
+
   it 'should immediately reject if any fail', (done) ->
     a = new Promise
     b = new Promise
     composed = promise.all a, b
     composed.then null, -> done()
     b.reject()
+
   it 'should return the first rejected promise', (done) ->
     a = new Promise
     b = new Promise
