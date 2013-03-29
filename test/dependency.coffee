@@ -546,6 +546,7 @@ describe 'holdup.make', ->
     promise = holdup.make (fulfill, reject) -> reject()
     promise.then null, -> done()
 
+
 describe 'holdup.wrap', ->
   it 'should wrap Node-style async functions with no arguments', (done) ->
     fn = (callback) -> callback(null, 10)
