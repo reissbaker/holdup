@@ -596,3 +596,8 @@ describe 'promise.timeout', ->
     setTimeout ->
       called = true
     , 10
+
+  it 'should pass the time back to the callback', (done) ->
+    promise.timeout(100).then (time) ->
+      expect(time).to.be 100
+      done()
