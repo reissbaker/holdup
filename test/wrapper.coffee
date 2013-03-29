@@ -57,6 +57,35 @@ describe 'promise.all', ->
     b.reject()
     a.reject()
 
+  it 'should work for any number of promises', (done) ->
+    a = new Promise
+    one = promise.all a
+    a.fulfill()
+
+    b = new Promise
+    c = new Promise
+    d = new Promise
+    three = promise.all b, c, d
+    b.fulfill()
+    c.fulfill()
+    d.fulfill()
+
+    promise.all(one, three).then -> done()
+
+  it 'should work for promises that are already fulfilled', (done) ->
+    a = new Promise
+    b = new Promise
+    a.fulfill()
+    b.fulfill()
+    composed = promise.all a, b
+    composed.then -> done()
+
+  it 'should work for promises that are already rejected', (done) ->
+    a = new Promise
+    b = new Promise
+    a.reject()
+    promise.all(a, b).then null, -> done()
+
 describe 'promise.none', ->
   it 'should wait for one promise to be rejected', (done) ->
     fired = false
@@ -112,6 +141,33 @@ describe 'promise.none', ->
     b.fulfill()
     a.fulfill()
 
+  it 'should work for any number of promises', (done) ->
+    a = new Promise
+    one = promise.none a
+    a.reject()
+
+    b = new Promise
+    c = new Promise
+    d = new Promise
+    three = promise.none b, c, d
+    b.reject()
+    c.reject()
+    d.reject()
+
+    promise.all(one, three).then -> done()
+
+  it 'should work for promises that are already fulfilled', (done) ->
+    a = new Promise
+    b = new Promise
+    a.fulfill()
+    promise.none(a, b).then null, -> done()
+
+  it 'should work for promises that are already rejected', (done) ->
+    a = new Promise
+    b = new Promise
+    a.reject()
+    b.reject()
+    promise.none(a, b).then -> done()
 
 describe 'promise.any', ->
   it 'should wait for one promise to fulfill', (done) ->
@@ -185,6 +241,54 @@ describe 'promise.any', ->
     b.fulfill()
     d.reject()
 
+  it 'should work for any number of promises', (done) ->
+    a = new Promise
+    oneFulfill = promise.any a
+    oneFulfill.then (fulfilled, rejected) ->
+      expect(fulfilled).to.eql [a]
+      expect(rejected).to.eql []
+    a.fulfill()
+
+    b = new Promise
+    oneReject = promise.any b
+    oneReject.then (fulfilled, rejected) ->
+      expect(rejected).to.eql [b]
+      expect(fulfilled).to.eql []
+    b.reject()
+
+    c = new Promise
+    d = new Promise
+    e = new Promise
+    three = promise.any c, d, e
+    three.then (fulfilled, rejected) ->
+      expect(fulfilled).to.eql [c, d]
+      expect(rejected).to.eql [e]
+    c.fulfill()
+    d.fulfill()
+    e.reject()
+
+    promise.all(oneFulfill, oneReject, three).then -> done()
+
+  it 'should work for promises that are already fulfilled', (done) ->
+    a = new Promise
+    b = new Promise
+    a.fulfill()
+    b.fulfill()
+    promise.any(a, b).then -> done()
+
+  it 'should work for promises that are already rejected', (done) ->
+    a = new Promise
+    b = new Promise
+    a.reject()
+    b.reject()
+    promise.any(a, b).then -> done()
+
+  it 'should work for promises that are a mixture pre-fulfilled and pre-rejected', (done) ->
+    a = new Promise
+    b = new Promise
+    a.reject()
+    b.fulfill()
+    promise.any(a, b).then -> done()
 
 describe 'promise.firstFulfilled', ->
   it 'should fulfill as soon as any have fulfilled', (done) ->
