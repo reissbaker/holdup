@@ -229,6 +229,21 @@ describe 'promise.firstFulfilled', ->
     a.reject()
     b.reject()
 
+  it 'should work with any number of promises', (done) ->
+    a = new Promise
+    one = promise.firstFulfilled a
+    one.then (first) -> expect(first).to.be a
+    a.fulfill()
+
+    b = new Promise
+    c = new Promise
+    d = new Promise
+    three = promise.firstFulfilled b, c, d
+    three.then (first) -> expect(first).to.be b
+    b.fulfill()
+
+    promise.all(one, three).then -> done()
+
 
 describe 'promise.firstRejected', ->
   it 'should fulfill as soon as any have rejected', (done) ->
@@ -272,6 +287,22 @@ describe 'promise.firstRejected', ->
       done()
     a.fulfill()
     b.fulfill()
+
+  it 'should work with any number of promises', (done) ->
+    a = new Promise
+    one = promise.firstRejected a
+    one.then (first) -> expect(first).to.be a
+    a.reject()
+
+    b = new Promise
+    c = new Promise
+    d = new Promise
+    three = promise.firstRejected b, c, d
+    three.then (first) -> expect(first).to.be b
+    b.reject()
+
+    promise.all(one, three).then -> done()
+
 
 describe 'promise.lastFulfilled', ->
   it 'should pass the last fulfilled promise to its callback', (done) ->
@@ -318,6 +349,22 @@ describe 'promise.lastFulfilled', ->
 
     promise.all(first, second).then -> done()
 
+  it 'should work with any number of promises', (done) ->
+    a = new Promise
+    one = promise.lastFulfilled a
+    one.then (last) -> expect(last).to.be a
+    a.fulfill()
+
+    b = new Promise
+    c = new Promise
+    d = new Promise
+    three = promise.lastFulfilled b, c, d
+    three.then (last) -> expect(last).to.be d
+    b.fulfill()
+    c.fulfill()
+    d.fulfill()
+
+    promise.all(one, three).then -> done()
 
 
 describe 'promise.lastRejected', ->
@@ -368,6 +415,22 @@ describe 'promise.lastRejected', ->
 
     promise.all(first, second).then -> done()
 
+  it 'should work with any number of promises', (done) ->
+    a = new Promise
+    one = promise.lastRejected a
+    one.then (last) -> expect(last).to.be a
+    a.reject()
+
+    b = new Promise
+    c = new Promise
+    d = new Promise
+    three = promise.lastRejected b, c, d
+    three.then (last) -> expect(last).to.be d
+    b.reject()
+    c.reject()
+    d.reject()
+
+    promise.all(one, three).then -> done()
 
 
 describe 'promise.wrap', ->
