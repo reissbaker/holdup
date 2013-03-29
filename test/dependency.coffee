@@ -1,6 +1,6 @@
 expect = require 'expect.js'
 {Promise} = require '../lib/promise'
-holdup = require '../lib/wrapper'
+holdup = require '../lib/dependency'
 
 describe 'holdup.all', ->
   it 'should wait for one promise to run', (done) ->

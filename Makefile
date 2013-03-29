@@ -3,6 +3,7 @@ REPORTER = dot
 SLOW = 600
 
 build-test:
+	@rm -f test/*.js
 	@node_modules/.bin/coffee -c $(TESTS)
 
 run-test:
