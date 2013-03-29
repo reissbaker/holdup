@@ -537,6 +537,15 @@ describe 'holdup.lastRejected', ->
     holdup.all(one, three).then -> done()
 
 
+describe 'holdup.make', ->
+  it 'should create a promise that is fulfilled when the fulfill callback is called', (done) ->
+    promise = holdup.make (fulfill) -> fulfill()
+    promise.then -> done()
+
+  it 'should create a promise that is rejected when the reject callback is called', (done) ->
+    promise = holdup.make (fulfill, reject) -> reject()
+    promise.then null, -> done()
+
 describe 'holdup.wrap', ->
   it 'should wrap Node-style async functions with no arguments', (done) ->
     fn = (callback) -> callback(null, 10)
