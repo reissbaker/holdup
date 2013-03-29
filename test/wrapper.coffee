@@ -170,7 +170,7 @@ describe 'promise.none', ->
     promise.none(a, b).then -> done()
 
 describe 'promise.any', ->
-  it 'should wait for its one promise to fulfill', (done) ->
+  it 'should wait for one promise to fulfill', (done) ->
     fired = false
     initial = new Promise
     initial.then -> fired = true
@@ -180,7 +180,7 @@ describe 'promise.any', ->
       done()
     initial.fulfill()
   
-  it 'should wait for its one promise to reject', (done) ->
+  it 'should wait for one promise to reject', (done) ->
     fired = false
     initial = new Promise
     initial.then null, -> fired = true
