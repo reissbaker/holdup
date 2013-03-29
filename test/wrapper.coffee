@@ -274,6 +274,51 @@ describe 'promise.firstRejected', ->
     b.fulfill()
 
 describe 'promise.lastFulfilled', ->
+  it 'should pass the last fulfilled promise to its callback', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.lastFulfilled a, b
+    composed.then (last) ->
+      expect(last).to.be b
+      done()
+    a.fulfill()
+    b.fulfill()
+  
+  it 'should reject if all reject', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.lastFulfilled a, b
+    composed.then null, -> done()
+    a.reject()
+    b.reject()
+
+  it 'should pass all rejected promises to its errback', (done) ->
+    a = new Promise
+    b = new Promise
+    composed = promise.lastFulfilled a, b
+    composed.then null, (rejected) ->
+      expect(rejected).to.eql [a, b]
+      done()
+    a.reject()
+    b.reject()
+
+  it 'should fulfill even if some reject', (done) ->
+    a = new Promise
+    b = new Promise
+    c = new Promise
+    d = new Promise
+    first = promise.lastFulfilled a, b
+    first.then (last) -> expect(last).to.be a
+    a.fulfill()
+    b.reject()
+    second = promise.lastFulfilled c, d
+    second.then (last) -> expect(last).to.be d
+    c.reject()
+    d.fulfill()
+
+    promise.all(first, second).then -> done()
+
+
 
 describe 'promise.lastRejected', ->
 
