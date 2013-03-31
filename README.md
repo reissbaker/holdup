@@ -21,9 +21,9 @@ Here's an example of how to define a task that depends on three other
 Node-style async functions:
 
 ```javascript
-taskA = holdup.wrap(nodeFn);
-taskB = holdup.wrap(otherNodeFn);
-taskC = holdup.wrap(finalNodeFn, arg1, arg2);
+var taskA = holdup.wrap(nodeFn);
+var taskB = holdup.wrap(otherNodeFn);
+var taskC = holdup.wrap(finalNodeFn, arg1, arg2);
 
 holdup.all(taskA, taskB, taskC).then(function() {
   // do work
@@ -43,16 +43,16 @@ finishes do some other work. What if we have multiple dependencies on separate
 parallel workloads? Holdup handles that well too:
 
 ```javascript
-taskA = holdup.wrap(fnA);
-taskB = holdup.wrap(fnB);
+var taskA = holdup.wrap(fnA);
+var taskB = holdup.wrap(fnB);
 
-taskC = holdup.all(taskA, taskB).then(function() {
-  return holdup.wrap(fnC);
+var taskC = holdup.all(taskA, taskB).then(function() {
+return holdup.wrap(fnC);
 });
 
-taskD = holdup.all(taskA).then(function() { return holdup.wrap(fnD); });
+var taskD = holdup.all(taskA).then(function() { return holdup.wrap(fnD); });
 
-taskE = holdup.all(taskC, taskD).then(function() {
+var taskE = holdup.all(taskC, taskD).then(function() {
   return holdup.wrap(fnE);
 });
 ```
