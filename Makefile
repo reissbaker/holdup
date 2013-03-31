@@ -9,7 +9,7 @@ build/package.js:
 
 build/package.min.js: build/package.js
 	./node_modules/.bin/uglifyjs \
-		-m sort=true \
+		-m \
 		-c warnings=false,unsafe=true \
 		$< > $@
 
