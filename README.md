@@ -47,7 +47,7 @@ var taskA = holdup.wrap(fnA);
 var taskB = holdup.wrap(fnB);
 
 var taskC = holdup.all(taskA, taskB).then(function() {
-return holdup.wrap(fnC);
+  return holdup.wrap(fnC);
 });
 
 var taskD = holdup.all(taskA).then(function() { return holdup.wrap(fnD); });
