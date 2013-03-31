@@ -36,7 +36,7 @@ build: build/package.js build/package.min.js build/package.min.js.gz
 
 .PHONY: clean
 clean:
-	rm -r build/
+	rm -rf build/
 
 .PHONY: sizes
 sizes:
