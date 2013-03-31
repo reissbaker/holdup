@@ -10,7 +10,7 @@ build/package.js:
 build/package.min.js: build/package.js
 	./node_modules/.bin/uglifyjs \
 		-m sort=true \
-		-c warnings=false,unsafe=true,hoist_vars=true \
+		-c warnings=false,unsafe=true \
 		$< > $@
 
 build/package.min.js.gz: build/package.min.js
