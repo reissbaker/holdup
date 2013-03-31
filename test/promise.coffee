@@ -40,27 +40,17 @@ describe 'Promise', ->
       done()
     promise.reject 100
 
-  it 'should not be able to reject after being fulfilled', ->
-    called = 0
-    promise.then(
-      -> called++
-      -> called++
-    )
+  it 'should not be able to reject after being fulfilled', (done) ->
+    promise.then (-> done()), (-> done())
     promise.fulfill()
     promise.reject()
-    expect(called).to.be 1
-    expect(promise.fulfilled()).to.be true
     expect(promise.rejected()).to.be false
+    expect(promise.fulfilled()).to.be true
 
-  it 'should not be able to be fulfilled after rejecting', ->
-    called = 0
-    promise.then(
-      -> called++
-      -> called++
-    )
+  it 'should not be able to be fulfilled after rejecting', (done) ->
+    promise.then (-> done()), (-> done())
     promise.reject()
     promise.fulfill()
-    expect(called).to.be 1
     expect(promise.rejected()).to.be true
     expect(promise.fulfilled()).to.be false
 
