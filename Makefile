@@ -1,7 +1,23 @@
+##
+# Tests
+# -----
+
 TESTS = test/
 REPORTER = dot
 SLOW = 600
 
+##
+# Colors
+# ------
+
+NO_COLOR=\x1b[0m
+OK_COLOR=\x1b[32;01m
+ERROR_COLOR=\x1b[31;01m
+WARN_COLOR=\x1b[33;01m
+
+##
+# Built Files
+# -----------
 
 build/package.js:
 	mkdir -p build
@@ -15,6 +31,11 @@ build/package.min.js: build/package.js
 
 build/package.min.js.gz: build/package.min.js
 	gzip -c $< > $@
+
+
+##
+# Commands
+# --------
 
 .PHONY: build-test
 build-test:
@@ -41,3 +62,9 @@ clean:
 .PHONY: sizes
 sizes:
 	ls -l build/
+
+.PHONY: rebuild
+rebuild:
+	@make clean && make build
+	@echo "$(OK_COLOR)\nSuccess! Built:$(NO_COLOR)"
+	@make sizes
