@@ -89,4 +89,24 @@ describe 'Promise', ->
     expect(promise.pending()).to.be false
     expect(promise.fulfilled()).to.be false
 
+  it 'should fulfill when using the public promise interface', (done) ->
+    promise.promise().then -> done()
+    promise.fulfill()
+
+  it 'should reject when using the public promise interface', (done) ->
+    promise.promise().then null, -> done()
+    promise.reject()
+
+  it 'shouldn\'t fulfill twice when using the public promise interface', (done) ->
+    promise.promise().then -> done()
+    promise.fulfill()
+    promise.fulfill()
+
+  it 'shouldn\'t reject twice when using the public promise interface', (done) ->
+    promise.promise().then null, -> done()
+    promise.reject()
+    promise.reject()
+
+
+
   # ALSO TODO: test multiple arguments passed to a fulfill() or reject()
