@@ -4,7 +4,8 @@
 
 TESTS = test/
 REPORTER = dot
-SLOW = 600
+SLOW = 300
+TIMEOUT = 600
 
 ##
 # Colors
@@ -47,6 +48,7 @@ run-test:
 	@NODE_ENV=test ./node_modules/.bin/mocha \
 		--reporter $(REPORTER) \
 		--slow $(SLOW) \
+		--timeout $(TIMEOUT) \
 		$(TESTS)
 
 .PHONY: test
