@@ -1,10 +1,10 @@
 expect = require 'expect.js'
-{Promise} = require '../lib/promise'
+{Deferred} = require '../lib/promise'
 
-describe 'Promise', ->
+describe 'Deferred', ->
   promise = null
 
-  beforeEach -> promise = new Promise
+  beforeEach -> promise = new Deferred
 
   it 'should fire its `then` callback when fulfilled', (done) ->
     promise.then(
