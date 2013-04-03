@@ -1,4 +1,4 @@
-{Deferred} = require '../lib/promise'
+{Deferred} = require '../lib/deferred'
 
 adapter = {
   fulfilled: (value) ->

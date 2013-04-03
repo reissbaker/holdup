@@ -1,5 +1,5 @@
 expect = require 'expect.js'
-{Deferred} = require '../lib/promise'
+{Deferred} = require '../lib/deferred'
 
 describe 'Deferred', ->
   promise = null
