@@ -12,10 +12,9 @@ takes care of the rest.
 
 Holdup runs in Node, Component-spec environments, and ordinary browsers.  It
 has no dependencies and is extensively unit-tested. It works with any CommonJS
-Promises/A or Promises/A+ compliant promise implementation, including jQuery
-Deferreds; it also provides its own Promises/A and Promises/A+ compliant
-promise implementation that it uses internally and that you may use yourself if
-you so choose.
+Promises/A or Promises/A+ compliant promise implementation; it also provides
+its own Promises/A and Promises/A+ compliant promise implementation that it
+uses internally and that you may use yourself if you so choose.
 
 Here's an example of how to define a task that depends on three other
 Node-style async functions:
@@ -66,3 +65,36 @@ Holdup understands more than success, though. Sometimes, things break: and
 we still need to handle those failures. What's more, we might only need to take
 certain precautions if *enough* things break, or if specific combinations of
 things break. With Holdup, it's easy to define those relationships:
+
+```javascript
+var taskA = holdup.wrap(fnA),
+    taskB = holdup.wrap(fnB),
+    taskC = holdup.wrap(fnC),
+    taskD = holdup.all(taskA, taskB),
+    taskE = holdup.none(taskC, taskD);
+
+taskE.then(function() {
+  // only gets called when taskC and taskD both error out
+}, function() {
+  // gets called if either taskC or taskD pass, or if they both do
+});
+```
+
+Similarly, Holdup has a `resolved` function that fulfills once everything has
+resolved -- even if everything resolved to an error state. It passes the
+fulfilled and rejected promises in separate arrays to the `then` callback, as
+so:
+
+```javascript
+var taskA = holdup.wrap(fnA),
+    taskB = holdup.wrap(fnB),
+    taskC = holdup.wrap(fnC),
+    taskD = holdup.resolved(taskA, taskB, taskC);
+
+taskD.then(function(fulfilled, rejected) {
+  // this is called once taskA, taskB, and taskC are no longer in pending
+  // states.
+  // fulfilled is an array of which tasks have fulfilled, and rejected is an
+  // array of which tasks have rejected.
+});
+```
