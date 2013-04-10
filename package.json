@@ -1,4 +1,19 @@
 {
+  "name": "holdup",
+  "version": "0.0.1",
+  "description": "Wrangle CommonJS Promises.",
+  "author": {
+    "name": "Matt Baker",
+    "url": "twitter.com/reissbaker"
+  },
+  "license": "MIT",
+  "keywords": [
+    "promise", "promises", "flow control", "flow-control", "callbacks"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reissbaker/holdup.git"
+  },
   "devDependencies": {
     "mocha": "1.6.0",
     "coffee-script": "1.3.3",
