@@ -169,12 +169,12 @@ describe 'holdup.none', ->
     b.reject()
     holdup.none(a, b).then -> done()
 
-describe 'holdup.any', ->
+describe 'holdup.resolved', ->
   it 'should wait for one promise to fulfill', (done) ->
     fired = false
     initial = new Deferred
     initial.then -> fired = true
-    composed = holdup.any initial
+    composed = holdup.resolved initial
     composed.then ->
       expect(fired).to.be.ok()
       done()
@@ -184,7 +184,7 @@ describe 'holdup.any', ->
     fired = false
     initial = new Deferred
     initial.then null, -> fired = true
-    composed = holdup.any initial
+    composed = holdup.resolved initial
     composed.then ->
       expect(fired).to.be.ok()
       done()
@@ -195,7 +195,7 @@ describe 'holdup.any', ->
     a = new Deferred
     b = new Deferred
     b.then -> lastFired = true
-    composed = holdup.any a, b
+    composed = holdup.resolved a, b
     composed.then ->
       expect(lastFired).to.be.ok()
       done()
@@ -207,7 +207,7 @@ describe 'holdup.any', ->
     a = new Deferred
     b = new Deferred
     b.then null, -> lastFired = true
-    composed = holdup.any a, b
+    composed = holdup.resolved a, b
     composed.then ->
       expect(lastFired).to.be.ok()
       done()
@@ -219,7 +219,7 @@ describe 'holdup.any', ->
     a = new Deferred
     b = new Deferred
     b.then -> lastFired = true
-    composed = holdup.any a, b
+    composed = holdup.resolved a, b
     composed.then ->
       expect(lastFired).to.be.ok()
       done()
@@ -231,7 +231,7 @@ describe 'holdup.any', ->
     b = new Deferred
     c = new Deferred
     d = new Deferred
-    composed = holdup.any a, b, c ,d
+    composed = holdup.resolved a, b, c ,d
     composed.then (fulfilled, rejected) ->
       expect(fulfilled).to.eql [a, b]
       expect(rejected).to.eql [c, d]
@@ -243,14 +243,14 @@ describe 'holdup.any', ->
 
   it 'should work for any number of promises', (done) ->
     a = new Deferred
-    oneFulfill = holdup.any a
+    oneFulfill = holdup.resolved a
     oneFulfill.then (fulfilled, rejected) ->
       expect(fulfilled).to.eql [a]
       expect(rejected).to.eql []
     a.fulfill()
 
     b = new Deferred
-    oneReject = holdup.any b
+    oneReject = holdup.resolved b
     oneReject.then (fulfilled, rejected) ->
       expect(rejected).to.eql [b]
       expect(fulfilled).to.eql []
@@ -259,7 +259,7 @@ describe 'holdup.any', ->
     c = new Deferred
     d = new Deferred
     e = new Deferred
-    three = holdup.any c, d, e
+    three = holdup.resolved c, d, e
     three.then (fulfilled, rejected) ->
       expect(fulfilled).to.eql [c, d]
       expect(rejected).to.eql [e]
@@ -274,21 +274,21 @@ describe 'holdup.any', ->
     b = new Deferred
     a.fulfill()
     b.fulfill()
-    holdup.any(a, b).then -> done()
+    holdup.resolved(a, b).then -> done()
 
   it 'should work for promises that are already rejected', (done) ->
     a = new Deferred
     b = new Deferred
     a.reject()
     b.reject()
-    holdup.any(a, b).then -> done()
+    holdup.resolved(a, b).then -> done()
 
   it 'should work for promises that are a mixture pre-fulfilled and pre-rejected', (done) ->
     a = new Deferred
     b = new Deferred
     a.reject()
     b.fulfill()
-    holdup.any(a, b).then -> done()
+    holdup.resolved(a, b).then -> done()
 
 describe 'holdup.firstFulfilled', ->
   it 'should fulfill as soon as any have fulfilled', (done) ->
