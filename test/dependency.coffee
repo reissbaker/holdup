@@ -3,6 +3,10 @@ expect = require 'expect.js'
 holdup = require '../lib/dependency'
 
 describe 'holdup.all', ->
+  it 'should fulfill if no promises are passed', (done) ->
+    composed = holdup.all []
+    composed.then -> done()
+
   it 'should wait for one promise to run', (done) ->
     fired = false
     initial = new Deferred
@@ -87,6 +91,10 @@ describe 'holdup.all', ->
     holdup.all(a, b).then null, -> done()
 
 describe 'holdup.none', ->
+  it 'should fulfill if no promises are passed', (done) ->
+    composed = holdup.none []
+    composed.then -> done()
+
   it 'should wait for one promise to be rejected', (done) ->
     fired = false
     initial = new Deferred
@@ -170,6 +178,10 @@ describe 'holdup.none', ->
     holdup.none(a, b).then -> done()
 
 describe 'holdup.resolved', ->
+  it 'should fulfill if no promises are passed', (done) ->
+    composed = holdup.resolved []
+    composed.then -> done()
+
   it 'should wait for one promise to fulfill', (done) ->
     fired = false
     initial = new Deferred
