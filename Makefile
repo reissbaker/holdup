@@ -22,7 +22,7 @@ WARN_COLOR=\x1b[33;01m
 
 build/package.js:
 	mkdir -p build
-	cat lib/client-package.js lib/promise.js lib/dependency.js > $@
+	cat lib/client-package.js lib/deferred.js lib/dependency.js > $@
 
 build/package.min.js: build/package.js
 	./node_modules/.bin/uglifyjs \
