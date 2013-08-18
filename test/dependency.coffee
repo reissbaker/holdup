@@ -51,6 +51,16 @@ describe 'holdup.all', ->
     composed.then null, -> done()
     b.reject()
 
+  it 'should return the fulfilled promises', (done) ->
+    a = new Deferred
+    b = new Deferred
+    composed = holdup.all a, b
+    composed.then (fulfilled) ->
+      expect(fulfilled).to.eql [a, b]
+      done()
+    a.fulfill()
+    b.fulfill()
+
   it 'should return the first rejected promise', (done) ->
     a = new Deferred
     b = new Deferred
@@ -111,6 +121,16 @@ describe 'holdup.none', ->
     composed = holdup.none initial
     composed.then null, -> done()
     initial.fulfill()
+
+  it 'should return the rejected promises when fulfilled', (done) ->
+    a = new Deferred
+    b = new Deferred
+    composed = holdup.none a, b
+    composed.then (rejected) ->
+      expect(rejected).to.eql [a, b]
+      done()
+    a.reject()
+    b.reject()
 
   it 'should return the fulfilled promise when rejecting', (done) ->
     initial = new Deferred
