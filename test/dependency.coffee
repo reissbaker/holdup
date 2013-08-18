@@ -211,7 +211,7 @@ describe 'holdup.resolved', ->
       expect(fired).to.be.ok()
       done()
     initial.fulfill()
-  
+
   it 'should wait for one promise to reject', (done) ->
     fired = false
     initial = new Deferred
@@ -221,7 +221,7 @@ describe 'holdup.resolved', ->
       expect(fired).to.be.ok()
       done()
     initial.reject()
-  
+
   it 'should wait for multiple promises to fulfill', (done) ->
     lastFired = false
     a = new Deferred
@@ -257,7 +257,7 @@ describe 'holdup.resolved', ->
       done()
     a.reject()
     b.fulfill()
-  
+
   it 'should pass the lists of fulfilled and rejected promises', (done) ->
     a = new Deferred
     b = new Deferred
@@ -450,7 +450,7 @@ describe 'holdup.lastFulfilled', ->
       done()
     a.fulfill()
     b.fulfill()
-  
+
   it 'should reject if all reject', (done) ->
     a = new Deferred
     b = new Deferred
