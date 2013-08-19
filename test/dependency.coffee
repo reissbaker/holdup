@@ -745,3 +745,32 @@ describe 'holdup.errors', ->
       done()
     a.reject 5
     b.reject 6
+
+describe 'holdup.invert', ->
+  it 'should turn a fulfill into a reject', (done) ->
+    a = new Deferred
+    b = holdup.invert a
+    b.then null, -> done()
+    a.fulfill()
+
+  it 'should turn a reject into a fulfill', (done) ->
+    a = new Deferred
+    b = holdup.invert a
+    b.then -> done()
+    a.reject()
+
+  it 'should forward data to errors', (done) ->
+    a = new Deferred
+    b = holdup.invert a
+    b.then null, (err) ->
+      expect(err).to.be 5
+      done()
+    a.fulfill 5
+
+  it 'should forward errors to data', (done) ->
+    a = new Deferred
+    b = holdup.invert a
+    b.then (data) ->
+      expect(data).to.be 5
+      done()
+    a.reject 5
