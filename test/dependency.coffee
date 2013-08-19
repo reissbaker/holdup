@@ -643,3 +643,85 @@ describe 'holdup.timeout', ->
     holdup.timeout(100).then (time) ->
       expect(time).to.be 100
       done()
+
+describe 'holdup.data', ->
+  it 'should collect all the data from fulfilled promises', (done) ->
+    a = new Deferred
+    b = new Deferred
+    holdup.data a, b, (aData, bData) ->
+      expect(aData).to.be 5
+      expect(bData).to.be 6
+      done()
+    a.fulfill 5
+    b.fulfill 6
+
+  it 'should keep original ordering', (done) ->
+    a = new Deferred
+    b = new Deferred
+    holdup.data a, b, (aData, bData) ->
+      expect(aData).to.be 5
+      expect(bData).to.be 6
+      done()
+    b.fulfill 6
+    a.fulfill 5
+
+  it 'should leave data from rejected promises as undefined', (done) ->
+    a = new Deferred
+    b = new Deferred
+    holdup.data a, b, (aData, bData) ->
+      expect(aData).to.be undefined
+      expect(bData).to.be undefined
+      done()
+    a.reject 'hi'
+    b.reject 'there'
+
+  it 'should work for mixtures of fulfilled and rejected promises', (done) ->
+    a = new Deferred
+    b = new Deferred
+    holdup.data a, b, (aData, bData) ->
+      expect(aData).to.be undefined
+      expect(bData).to.be 5
+      done()
+    a.reject 'hi'
+    b.fulfill 5
+
+describe 'holdup.errors', ->
+  it 'should collect all the errors from rejected promises', (done) ->
+    a = new Deferred
+    b = new Deferred
+    holdup.errors a, b, (aError, bError) ->
+      expect(aError).to.be 'hi'
+      expect(bError).to.be 'there'
+      done()
+    a.reject 'hi'
+    b.reject 'there'
+
+  it 'should keep original ordering', (done) ->
+    a = new Deferred
+    b = new Deferred
+    holdup.errors a, b, (aData, bData) ->
+      expect(aData).to.be 5
+      expect(bData).to.be 6
+      done()
+    b.reject 6
+    a.reject 5
+
+  it 'should leave data from fulfilled promises as undefined', (done) ->
+    a = new Deferred
+    b = new Deferred
+    holdup.errors a, b, (aError, bError) ->
+      expect(aError).to.be undefined
+      expect(bError).to.be undefined
+      done()
+    a.fulfill 5
+    b.fulfill 6
+
+  it 'should work for a mixture of fulfilled and rejected promises', (done) ->
+    a = new Deferred
+    b = new Deferred
+    holdup.errors a, b, (aError, bError) ->
+      expect(aError).to.be undefined
+      expect(bError).to.be 5
+      done()
+    a.fulfill 6
+    b.reject 5
