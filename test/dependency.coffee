@@ -709,9 +709,9 @@ describe 'holdup.errors', ->
   it 'should keep original ordering', (done) ->
     a = new Deferred
     b = new Deferred
-    holdup.errors a, b, (aData, bData) ->
-      expect(aData).to.be 5
-      expect(bData).to.be 6
+    holdup.errors a, b, (aError, bError) ->
+      expect(aError).to.be 5
+      expect(bError).to.be 6
       done()
     b.reject 6
     a.reject 5
