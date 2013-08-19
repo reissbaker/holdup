@@ -685,6 +685,16 @@ describe 'holdup.data', ->
     a.reject 'hi'
     b.fulfill 5
 
+  it 'should work with an array of promises', (done) ->
+    a = new Deferred
+    b = new Deferred
+    holdup.data [a, b], (aData, bData) ->
+      expect(aData).to.be 5
+      expect(bData).to.be 6
+      done()
+    a.fulfill 5
+    b.fulfill 6
+
 describe 'holdup.errors', ->
   it 'should collect all the errors from rejected promises', (done) ->
     a = new Deferred
@@ -725,3 +735,13 @@ describe 'holdup.errors', ->
       done()
     a.fulfill 6
     b.reject 5
+
+  it 'should work with an array of promises', (done) ->
+    a = new Deferred
+    b = new Deferred
+    holdup.errors [a, b], (aError, bError) ->
+      expect(aError).to.be 5
+      expect(bError).to.be 6
+      done()
+    a.reject 5
+    b.reject 6
