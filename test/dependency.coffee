@@ -582,7 +582,7 @@ describe 'holdup.make', ->
 describe 'holdup.wrap', ->
   it 'should wrap Node-style async functions with no arguments', (done) ->
     fn = (callback) -> callback(null, 10)
-    wrapped = holdup.wrap null, fn
+    wrapped = holdup.wrap fn
     wrapped.then (data) ->
       expect(data).to.be 10
       done()
@@ -591,14 +591,14 @@ describe 'holdup.wrap', ->
     fn = (test, callback) ->
       expect(test).to.be 10
       callback null, test
-    wrapped = holdup.wrap null, fn, 10
+    wrapped = holdup.wrap fn, 10
     wrapped.then (data) ->
       expect(data).to.be 10
       done()
 
   it 'should wrap Node-style async functions with multiple arguments', (done) ->
     fn = (a, b, callback) -> callback null, [a, b]
-    wrapped = holdup.wrap null, fn, 5, 10
+    wrapped = holdup.wrap fn, 5, 10
     wrapped.then (data) ->
       expect(data[0]).to.be 5
       expect(data[1]).to.be 10
@@ -606,19 +606,22 @@ describe 'holdup.wrap', ->
 
   it 'should reject when the async function errors out', (done) ->
     fn = (callback) -> callback 'rejecture'
-    wrapped = holdup.wrap null, fn
+    wrapped = holdup.wrap fn
     wrapped.then null, (err) ->
       expect(err).to.be 'rejecture'
       done()
 
+
+describe 'holdup.wrapFor', ->
   it 'should call functions with the given scope', (done) ->
     test =
       a: 10
       b: (callback) -> callback null, @a
-    wrapped = holdup.wrap test, test.b
+    wrapped = holdup.wrapFor test, test.b
     wrapped.then (data) ->
       expect(data).to.be 10
       done()
+
 
 describe 'holdup.timeout', ->
   it 'should fire callbacks asynchronously', (done) ->
