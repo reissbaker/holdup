@@ -277,10 +277,6 @@
   root.Deferred = Deferred;
 
 }();
-/*
- * `wrap` should be able to be called without a scope, brah.
- */
-
 !function() {
   'use strict';
 
