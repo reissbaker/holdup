@@ -4,4 +4,4 @@
 .DS_Store
 node_modules
 test/*.js
-build/
+build/*.js.gz

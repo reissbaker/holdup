@@ -12,7 +12,8 @@ define dependencies and Holdup takes care of the rest.
 Holdup runs in Node, Component-spec environments, and ordinary browsers.  It
 has no dependencies and is extensively unit-tested. It works with any CommonJS
 Promises/A or Promises/A+ compliant promise implementation; it also provides
-its own Promises/A+ compliant promise implementation.
+its own Promises/A+ compliant promise implementation. It clocks in at less than
+1.6k minified and gzipped.
 
 
 Examples
