@@ -1,16 +1,14 @@
 HOLDUP
 ================================================================================
 
-Holdup is a promise-based flow-control library that makes working with
-asynchronous callbacks in Javascript easy. With Holdup you define the
-dependencies of your functions and it executes them for you with maximal
-concurrency; you don't have to explicitly state whether they're parallel or
-serial. This makes concurrency both easier to achieve and easier to maintain:
-rather than thinking about function ordering or race conditions, you just
-define dependencies and Holdup takes care of the rest.
+Holdup is a lightweight promise-based flow-control library that makes working
+with callbacks in Javascript easy. With Holdup you define the dependencies of
+your functions and it executes them for you with maximal concurrency: you don't
+have to explicitly state whether they're parallel or serial, or what order each
+one should run in. It just works.
 
-Holdup runs in Node, Component-spec environments, and ordinary browsers.  It
-has no dependencies and is extensively unit-tested. It works with any CommonJS
+Holdup runs in Node, Component-spec environments, and ordinary browsers; it has
+no dependencies and is extensively unit-tested. It works with any CommonJS
 Promises/A or Promises/A+ compliant promise implementation; it also provides
 its own Promises/A+ compliant promise implementation. It clocks in at less than
 1.6k minified and gzipped.
@@ -61,8 +59,9 @@ var taskE = holdup.all(taskC, taskD).then(function() {
 
 In the above, `taskE` depends both on `taskC` and `taskD`. `taskD` depends on
 `taskA`, as does `taskC` -- but `taskC` has an additional dependency on
-`taskB`. This might be tricky to hand-optimize! Since you just have to specify
-dependencies, though, you can let Holdup take care of the work for you.
+`taskB`. This might be a pain to hand-optimize with raw callbacks, but since
+you just have to specify dependencies you can let Holdup take care of the work
+for you.
 
 Holdup understands more than success, though. Sometimes, things break; it's
 still important to handle those failures. It might also be important to take
@@ -84,9 +83,9 @@ taskE.then(function() {
 ```
 
 Similarly, Holdup has a `resolved` function that fulfills once everything has
-resolved -- even if everything resolved to an error state. It passes the
-fulfilled and rejected promises in separate arrays to the `then` callback, as
-so:
+resolved -- even if everything resolved to an error state, or if some resolved
+one way and others resolved another. It passes the fulfilled and rejected
+promises in separate arrays to the `then` callback, as so:
 
 ```javascript
 var taskA = holdup.wrap(fnA),
@@ -101,6 +100,11 @@ taskD.then(function(fulfilled, rejected) {
   // array of which tasks have rejected.
 });
 ```
+
+The `all`, `none`, and `resolved` functions form the basis of Holdup's API, but
+they're not the only ones available. Holdup provides a full-featured functional
+API for working with promises, wrapping Node-style functions, and easily making
+your own promises. Keep reading for the full API documentation.
 
 
 API
