@@ -219,7 +219,7 @@ errback of the given promise, it will be passed as the data to the returned
 promises callback.
 
 
-### holdup.data(promises...)
+### holdup.data(promises..., callback)
 
 Takes a list of promises (in array or arg list form) containing promises, and a
 callback function.
@@ -240,7 +240,7 @@ are resolved in a rejected state, their corresponding data will be passed in as
 `undefined`.
 
 
-### holdup.errors(promises...)
+### holdup.errors(promises..., callback)
 
 Takes a list of promises (in array or arg list form) containing promises, and a
 callback function.
