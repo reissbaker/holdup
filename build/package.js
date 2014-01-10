@@ -564,14 +564,7 @@
 
   root.wrap = function(fn) {
     var args = argArray(arguments, 1);
-
-    return root.make(function(fulfill, reject) {
-      args.push(function(err, data) {
-        if(err) reject(err);
-        else fulfill(data);
-      });
-      fn.apply(null, args);
-    });
+    return root.wrapFor.apply(root, ([null, fn]).concat(args));
   };
 
 
