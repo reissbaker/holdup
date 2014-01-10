@@ -298,3 +298,9 @@ functions given to it.
 
 The returned promise will pass along the given timeout interval to the `then`
 callback as its first parameter.
+
+
+License
+--------------------------------------------------------------------------------
+
+MIT. See LICENSE.txt for details.
