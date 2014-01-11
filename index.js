@@ -1,5 +1,5 @@
-var Deferred = require('./lib/deferred'),
-    dependency = require('./lib/dependency');
+var Deferred = require('./lib/deferred').Deferred,
+    holdup = require('./lib/holdup');
 
-module.exports = dependency;
-dependency.Deferred = Deferred;
+holdup.Deferred = Deferred;
+module.exports = holdup;

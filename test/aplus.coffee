@@ -1,4 +1,5 @@
-{Deferred} = require '../lib/deferred'
+holdup = require '../index.js'
+{Deferred} = holdup
 
 adapter = {
   fulfilled: (value) ->

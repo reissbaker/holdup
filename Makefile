@@ -24,7 +24,7 @@ WARN_COLOR=\x1b[33;01m
 
 build/holdup.js:
 	mkdir -p build
-	cat lib/client-package.js lib/deferred.js lib/dependency.js > $@
+	cat lib/client-package.js lib/deferred.js lib/holdup.js > $@
 
 build/holdup.min.js: build/holdup.js
 	./node_modules/.bin/uglifyjs \

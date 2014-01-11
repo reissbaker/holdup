@@ -1,6 +1,6 @@
 expect = require 'expect.js'
-{Deferred} = require '../lib/deferred'
-holdup = require '../lib/dependency'
+holdup = require '../index.js'
+{Deferred} = holdup
 
 describe 'holdup.all', ->
   it 'should fulfill if no promises are passed', (done) ->

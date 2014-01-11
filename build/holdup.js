@@ -790,7 +790,7 @@
     var boundArgs = argArray(arguments, 2);
     return function() {
       var args = argArray(arguments);
-      return root.nfsapply(scope, fn, boundArgs.concat(args));
+      return root.napply(scope, fn, boundArgs.concat(args));
     };
   };
 
@@ -803,8 +803,8 @@
    */
 
   root.nfbind = root.denodeify = function(fn) {
-    var args = argArray(arguments, 1);
-    return root.nbind.apply(root, [null].concat(args));
+    var args = ([fn, null]).concat(argArray(arguments, 1));
+    return root.nbind.apply(root, args);
   };
 
 
