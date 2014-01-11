@@ -6,103 +6,103 @@ describe 'Deferred', ->
 
   beforeEach -> promise = new Deferred
 
-  it 'should fire its `then` callback when fulfilled', (done) ->
+  it 'fires its `then` callback when fulfilled', (done) ->
     promise.then(
       -> done()
       -> expect(false).to.be true
     )
     promise.fulfill()
 
-  it 'should fire its `then` errback when rejected', (done) ->
+  it 'fires its `then` errback when rejected', (done) ->
     promise.then(
       -> expect(false).to.be true
       -> done()
     )
     promise.reject()
 
-  it 'should have optional errbacks', (done) ->
+  it 'has optional errbacks', (done) ->
     promise.then -> done()
     promise.fulfill()
 
-  it 'should have optional callbacks', (done) ->
+  it 'has optional callbacks', (done) ->
     promise.then null, -> done()
     promise.reject()
 
-  it 'should pass the data given to it in its `fulfill` call to its callback', (done) ->
+  it 'passs the data given to it in its `fulfill` call to its callback', (done) ->
     promise.then (data) ->
       expect(data).to.be 100
       done()
     promise.fulfill 100
 
-  it 'should pass the data given to it in its `reject` call to its errback', (done) ->
+  it 'passes the data given to it in its `reject` call to its errback', (done) ->
     promise.then null, (err) ->
       expect(err).to.be 100
       done()
     promise.reject 100
 
-  it 'should not be able to reject after being fulfilled', (done) ->
+  it 'is not be able to reject after being fulfilled', (done) ->
     promise.then (-> done()), (-> done())
     promise.fulfill()
     promise.reject()
     expect(promise.rejected()).to.be false
     expect(promise.fulfilled()).to.be true
 
-  it 'should not be able to be fulfilled after rejecting', (done) ->
+  it 'is not be able to be fulfilled after rejecting', (done) ->
     promise.then (-> done()), (-> done())
     promise.reject()
     promise.fulfill()
     expect(promise.rejected()).to.be true
     expect(promise.fulfilled()).to.be false
 
-  it 'should have its fulfill function be idempotent', (done) ->
+  it 'has its fulfill function be idempotent', (done) ->
     promise.then -> done()
     promise.fulfill()
     promise.fulfill()
 
-  it 'should have its reject function be idempotent', (done) ->
+  it 'has its reject function be idempotent', (done) ->
     promise.then null, -> done()
     promise.reject()
     promise.reject()
 
-  it 'should execute callbacks if already fulfilled', (done) ->
+  it 'executes callbacks if already fulfilled', (done) ->
     promise.fulfill()
     promise.then -> done()
 
-  it 'should execute errbacks if already rejected', (done) ->
+  it 'executes errbacks if already rejected', (done) ->
     promise.reject()
     promise.then null, -> done()
 
-  it 'should be unfulfilled when unfulfilled, and nothing else', ->
+  it 'is unfulfilled when unfulfilled, and nothing else', ->
     expect(promise.pending()).to.be true
     expect(promise.fulfilled()).to.be false
     expect(promise.rejected()).to.be false
 
-  it 'should be fulfilled when fulfilled, and nothing else', ->
+  it 'is fulfilled when fulfilled, and nothing else', ->
     promise.fulfill()
     expect(promise.fulfilled()).to.be true
     expect(promise.pending()).to.be false
     expect(promise.rejected()).to.be false
 
-  it 'should be rejected when rejected, and nothing else', ->
+  it 'is rejected when rejected, and nothing else', ->
     promise.reject()
     expect(promise.rejected()).to.be true
     expect(promise.pending()).to.be false
     expect(promise.fulfilled()).to.be false
 
-  it 'should fulfill when using the public promise interface', (done) ->
+  it 'fulfills when using the public promise interface', (done) ->
     promise.promise().then -> done()
     promise.fulfill()
 
-  it 'should reject when using the public promise interface', (done) ->
+  it 'rejects when using the public promise interface', (done) ->
     promise.promise().then null, -> done()
     promise.reject()
 
-  it 'shouldn\'t fulfill twice when using the public promise interface', (done) ->
+  it 'won\'t fulfill twice when using the public promise interface', (done) ->
     promise.promise().then -> done()
     promise.fulfill()
     promise.fulfill()
 
-  it 'shouldn\'t reject twice when using the public promise interface', (done) ->
+  it 'won\'t reject twice when using the public promise interface', (done) ->
     promise.promise().then null, -> done()
     promise.reject()
     promise.reject()
