@@ -885,3 +885,65 @@ describe 'holdup.ninvoke', ->
       expect(err).to.be 'reject'
       done()
 
+
+describe 'holdup.nbind', ->
+  it 'binds the Node-style function to the given scope', (done) ->
+    scope = {}
+    fn = (callback) ->
+      expect(this).to.be scope
+      callback(null, 100)
+    converted = holdup.nbind fn, scope
+    promise = converted()
+    promise.then (data) ->
+      expect(data).to.be 100
+      done()
+
+  it 'binds the given arguments', (done) ->
+    scope = {}
+    fn = (a, b, callback) ->
+      expect(this).to.be scope
+      expect(a).to.eql [10]
+      expect(b).to.be 'b'
+      callback(null, 100)
+    converted = holdup.nbind fn, scope, [10], 'b'
+    promise = converted()
+    promise.then (data) ->
+      expect(data).to.be 100
+      done()
+
+  it 'allows for currying', (done) ->
+    scope = {}
+    fn = (a, b, callback) ->
+      expect(this).to.be scope
+      expect(a).to.eql [10]
+      expect(b).to.be 'b'
+      callback(null, 100)
+
+    converted = holdup.nbind fn, scope, [10]
+    promise = converted('b')
+    promise.then (data) ->
+      expect(data).to.be 100
+      done()
+
+  it 'rejects when the function errors out', (done) ->
+    fn = (callback) -> callback('reject')
+    converted = holdup.nbind fn, null
+    promise = converted()
+    promise.then null, (err) ->
+      expect(err).to.be 'reject'
+      done()
+
+
+
+describe 'holdup.nfbind', ->
+  it 'binds arguments using currying, and doesn\'t need a scope', (done) ->
+    fn = (a, b, callback) ->
+      expect(a).to.eql [10]
+      expect(b).to.be 'b'
+      callback(null, 100)
+
+    converted = holdup.nfbind fn, [10]
+    promise = converted('b')
+    promise.then (data) ->
+      expect(data).to.be 100
+      done()
