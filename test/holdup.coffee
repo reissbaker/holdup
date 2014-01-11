@@ -958,3 +958,20 @@ describe 'holdup.nfbind', ->
     promise.then (data) ->
       expect(data).to.be 100
       done()
+
+
+
+describe 'holdup.nodeify', ->
+  it 'calls the callback with the data when the promise fulfills', (done) ->
+    promise = holdup.make (finish) -> finish(100)
+    holdup.nodeify promise, (err, data) ->
+      expect(data).to.be 100
+      expect(err).to.be null
+      done()
+
+  it 'calls the callback the err when the promise rejects', (done) ->
+    promise = holdup.make (fulfill, reject) -> reject('err')
+    holdup.nodeify promise, (err, data) ->
+      expect(err).to.be 'err'
+      expect(data).to.be undefined
+      done()
