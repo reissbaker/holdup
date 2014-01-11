@@ -579,10 +579,53 @@ describe 'holdup.make', ->
     promise.then null, -> done()
 
 
-describe 'holdup.wrap', ->
+describe 'holdup.nfapply', ->
+  it 'should wrap Node-style functions', (done) ->
+    fn = (callback) -> callback(null, 10)
+    wrapped = holdup.nfapply fn, []
+    wrapped.then (data) ->
+      expect(data).to.be 10
+      done()
+
+  it 'should pass its array of arguments to the Node-style function as args', (done) ->
+    fn = (a, b, callback) ->
+      expect(a).to.eql [10]
+      expect(b).to.be 'c'
+      callback(null, 100)
+    wrapped = holdup.nfapply fn, [[10], 'c']
+    wrapped.then (data) ->
+      expect(data).to.be 100
+      done()
+
+  it 'rejects when the async function errors out', (done) ->
+    fn = (callback) -> callback('reject')
+    wrapped = holdup.nfapply fn, []
+    wrapped.then null, (err) ->
+      expect(err).to.be 'reject'
+      done()
+
+
+
+describe 'holdup.napply', ->
+  it 'uses the given scope as the this arg', (done) ->
+    scope = {}
+    fn = (a, b, callback) ->
+      expect(a).to.eql [10]
+      expect(b).to.be 'b'
+      expect(this).to.be scope
+      callback(null, 100)
+
+    wrapped = holdup.napply scope, fn, [[10], 'b']
+    wrapped.then (data) ->
+      expect(data).to.be 100
+      done()
+
+
+
+describe 'holdup.nfcall', ->
   it 'should wrap Node-style async functions with no arguments', (done) ->
     fn = (callback) -> callback(null, 10)
-    wrapped = holdup.wrap fn
+    wrapped = holdup.nfcall fn
     wrapped.then (data) ->
       expect(data).to.be 10
       done()
@@ -591,36 +634,38 @@ describe 'holdup.wrap', ->
     fn = (test, callback) ->
       expect(test).to.be 10
       callback null, test
-    wrapped = holdup.wrap fn, 10
+    wrapped = holdup.nfcall fn, 10
     wrapped.then (data) ->
       expect(data).to.be 10
       done()
 
   it 'should wrap Node-style async functions with multiple arguments', (done) ->
     fn = (a, b, callback) -> callback null, [a, b]
-    wrapped = holdup.wrap fn, 5, 10
+    wrapped = holdup.nfcall fn, 5, 10
     wrapped.then (data) ->
       expect(data[0]).to.be 5
       expect(data[1]).to.be 10
       done()
 
   it 'should reject when the async function errors out', (done) ->
-    fn = (callback) -> callback 'rejecture'
-    wrapped = holdup.wrap fn
+    fn = (callback) -> callback 'rejection'
+    wrapped = holdup.nfcall fn
     wrapped.then null, (err) ->
-      expect(err).to.be 'rejecture'
+      expect(err).to.be 'rejection'
       done()
 
 
-describe 'holdup.wrapFor', ->
+
+describe 'holdup.ncall', ->
   it 'should call functions with the given scope', (done) ->
     test =
       a: 10
       b: (callback) -> callback null, @a
-    wrapped = holdup.wrapFor test, test.b
+    wrapped = holdup.ncall test, test.b
     wrapped.then (data) ->
       expect(data).to.be 10
       done()
+
 
 
 describe 'holdup.timeout', ->
@@ -646,6 +691,8 @@ describe 'holdup.timeout', ->
     holdup.timeout(100).then (time) ->
       expect(time).to.be 100
       done()
+
+
 
 describe 'holdup.data', ->
   it 'should collect all the data from fulfilled promises', (done) ->
@@ -698,6 +745,8 @@ describe 'holdup.data', ->
     a.fulfill 5
     b.fulfill 6
 
+
+
 describe 'holdup.errors', ->
   it 'should collect all the errors from rejected promises', (done) ->
     a = new Deferred
@@ -748,6 +797,8 @@ describe 'holdup.errors', ->
       done()
     a.reject 5
     b.reject 6
+
+
 
 describe 'holdup.invert', ->
   it 'should turn a fulfill into a reject', (done) ->
