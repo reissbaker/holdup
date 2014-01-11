@@ -828,3 +828,60 @@ describe 'holdup.invert', ->
       expect(data).to.be 5
       done()
     a.reject 5
+
+
+describe 'holdup.npost', ->
+  it 'calls the given Node-style method on the object', (done) ->
+    obj =
+      fn: (callback) -> callback(null, 10)
+    promise = holdup.npost obj, 'fn', []
+    promise.then (data) ->
+      expect(data).to.be 10
+      done()
+
+  it 'passes the given array of arguments as the arg list', (done) ->
+    obj =
+      fn: (a, b, callback) ->
+        expect(a).to.eql [10]
+        expect(b).to.be 'b'
+        callback(null, 100)
+    promise = holdup.npost obj, 'fn', [[10], 'b']
+    promise.then (data) ->
+      expect(data).to.be 100
+      done()
+
+  it 'rejects when the method rejects', (done) ->
+    obj =
+      fn: (callback) -> callback('reject')
+    promise = holdup.npost obj, 'fn', []
+    promise.then null, (err) ->
+      expect(err).to.be 'reject'
+      done()
+
+describe 'holdup.ninvoke', ->
+  it 'calls the given Node-style method on the object', (done) ->
+    obj =
+      fn: (callback) -> callback(null, 10)
+    promise = holdup.ninvoke obj, 'fn'
+    promise.then (data) ->
+      expect(data).to.be 10
+      done()
+
+  it 'passes the given args to the method', (done) ->
+    obj =
+      fn: (a, b, callback) ->
+        expect(a).to.eql [10]
+        expect(b).to.eql 'b'
+        callback(null, 100)
+    promise = holdup.ninvoke obj, 'fn', [10], 'b'
+    promise.then (data) ->
+      expect(data).to.be 100
+      done()
+
+  it 'rejects when the method errors out', (done) ->
+    obj = fn: (callback) -> callback('reject')
+    promise = holdup.ninvoke obj, 'fn'
+    promise.then null, (err) ->
+      expect(err).to.be 'reject'
+      done()
+
