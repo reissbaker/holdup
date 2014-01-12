@@ -389,13 +389,13 @@ readProust().then(function(text) {
 ```
 
 
-#### holdup.nfbind
+#### holdup.nfbind(nodeFn, args...)
 
 A convenient, scopeless version of nbind, for times when it's acceptable that
 the scope of `nbind` be `null`.
 
 
-#### holdup.nodeify
+#### holdup.nodeify(promise, callback)
 
 Given a promise and a Node-style callback, calls the callback with the correct
 `data` and `err` arguments when the promise fulfills or rejects.  Useful for
