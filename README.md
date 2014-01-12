@@ -306,17 +306,15 @@ callback as its first parameter.
 
 ##### holdup.delay(promise, milliseconds)
 
-Given a time in milliseconds and arg list, array, array of arrays, arg list of
-arrays..., returns a promise that fulfills when all of the promises fulfill or
-rejects when the first one rejects, but waits the given time before fulfilling
-or rejecting.
+Given a promise and a time in milliseconds, returns a promise that fulfills
+when the given promise fulfills or rejects when the first one rejects, but
+waits the given time before fulfilling or rejecting.
 
 
 ##### holdup.timeout(promise, milliseconds)
 
-Given a time in milliseconds and arg list, array, array of arrays, arg list of
-arrays..., returns a promise that fulfills if the promises fulfill before the
-time is up and rejects otherwise.
+Given a promise and a time in milliseconds, returns a promise that fulfills if
+the given promise fulfills before the time is up and rejects otherwise.
 
 
 
