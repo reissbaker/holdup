@@ -591,7 +591,7 @@
 
 
   /*
-   * ### holdup.timeout
+   * ### holdup.wait
    *
    * Given a time in milliseconds, returns a promise that calls its `then`
    * callback after that amount of time. The returned promise will never call
@@ -601,7 +601,7 @@
    * `then` callback as its first parameter.
    */
 
-  root.timeout = function(time) {
+  root.wait = function(time) {
     return root.make(function(fulfill) {
       setTimeout(function() { fulfill(time); }, time);
     });
@@ -617,11 +617,9 @@
    * before fulfilling or rejecting.
    */
 
-  root.delay = function(time) {
-    var args = argArray(arguments, 1),
-        all = root.all(args);
+  root.delay = function(promise, time) {
     return root.make(function(fulfill, reject) {
-      all.then(
+      promise.then(
         function() {
           var args = argArray(arguments, 0);
           setTimeout(function() { fulfill.apply(null, args); }, time);
@@ -636,19 +634,19 @@
 
 
   /*
-   * ### holdup.circuitBreak
+   * ### holdup.timeout
    *
    * Given a time in milliseconds and arg list, array, array of arrays, arg list
    * of arrays..., returns a promise that fulfills if the promises fulfill
    * before the time is up and rejects otherwise.
    */
 
-  root.circuitBreak = function(time) {
-    var args = argArray(arguments, 1),
-        all = root.all(args);
+  root.timeout = function(promise, time) {
     return root.make(function(fulfill, reject) {
-      setTimeout(reject, time);
-      all.then(fulfill);
+      setTimeout(function() {
+        reject('Error: ' + time + 'ms timeout exceeded.');
+      }, time);
+      promise.then(fulfill, reject);
     });
   };
 
