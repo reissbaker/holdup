@@ -407,4 +407,5 @@ exposing only a callback API.
 License
 --------------------------------------------------------------------------------
 
-MIT. See LICENSE.txt for details.
+Copyright 2013-2014 Matt Baker. Licensed under the MIT License: see LICENSE.txt
+for details.
