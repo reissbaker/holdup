@@ -316,7 +316,7 @@ as <code>undefined</code>.</p>
 <a name="timing-functions" class="anchor" href="#timing-functions"><span class="octicon octicon-link"></span></a>Timing Functions</h2>
 
 <h5>
-<a name="holduptimeoutmilliseconds" class="anchor" href="#holduptimeoutmilliseconds"><span class="octicon octicon-link"></span></a>holdup.timeout(milliseconds)</h5>
+<a name="holdupwaitmilliseconds" class="anchor" href="#holdupwaitmilliseconds"><span class="octicon octicon-link"></span></a>holdup.wait(milliseconds)</h5>
 
 <p>Given a time in milliseconds, returns a promise that calls its <code>then</code> callback
 after that amount of time. The returned promise will never call any errback
@@ -328,17 +328,15 @@ callback as its first parameter.</p>
 <h5>
 <a name="holdupdelaypromise-milliseconds" class="anchor" href="#holdupdelaypromise-milliseconds"><span class="octicon octicon-link"></span></a>holdup.delay(promise, milliseconds)</h5>
 
-<p>Given a time in milliseconds and arg list, array, array of arrays, arg list of
-arrays..., returns a promise that fulfills when all of the promises fulfill or
-rejects when the first one rejects, but waits the given time before fulfilling
-or rejecting.</p>
+<p>Given a promise and a time in milliseconds, returns a promise that fulfills
+when the given promise fulfills or rejects when the first one rejects, but
+waits the given time before fulfilling or rejecting.</p>
 
 <h5>
-<a name="holdupcircuitbreakpromise-milliseconds" class="anchor" href="#holdupcircuitbreakpromise-milliseconds"><span class="octicon octicon-link"></span></a>holdup.circuitBreak(promise, milliseconds)</h5>
+<a name="holduptimeoutpromise-milliseconds" class="anchor" href="#holduptimeoutpromise-milliseconds"><span class="octicon octicon-link"></span></a>holdup.timeout(promise, milliseconds)</h5>
 
-<p>Given a time in milliseconds and arg list, array, array of arrays, arg list of
-arrays..., returns a promise that fulfills if the promises fulfill before the
-time is up and rejects otherwise.</p>
+<p>Given a promise and a time in milliseconds, returns a promise that fulfills if
+the given promise fulfills before the time is up and rejects otherwise.</p>
 
 <h2>
 <a name="integrating-with-node-style-callback-apis" class="anchor" href="#integrating-with-node-style-callback-apis"><span class="octicon octicon-link"></span></a>Integrating With Node-style Callback APIs</h2>
