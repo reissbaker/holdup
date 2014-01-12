@@ -294,7 +294,7 @@ as `undefined`.
 Timing Functions
 --------------------------------------------------------------------------------
 
-##### holdup.timeout(milliseconds)
+##### holdup.wait(milliseconds)
 
 Given a time in milliseconds, returns a promise that calls its `then` callback
 after that amount of time. The returned promise will never call any errback
@@ -312,7 +312,7 @@ rejects when the first one rejects, but waits the given time before fulfilling
 or rejecting.
 
 
-##### holdup.circuitBreak(promise, milliseconds)
+##### holdup.timeout(promise, milliseconds)
 
 Given a time in milliseconds and arg list, array, array of arrays, arg list of
 arrays..., returns a promise that fulfills if the promises fulfill before the

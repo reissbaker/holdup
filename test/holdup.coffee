@@ -679,10 +679,10 @@ describe 'holdup.ncall', ->
 
 
 
-describe 'holdup.timeout', ->
+describe 'holdup.wait', ->
   it 'fires callbacks asynchronously', (done) ->
     async = false
-    timed = holdup.timeout 50
+    timed = holdup.wait 50
     timed.then ->
       expect(async).to.be true
       done()
@@ -690,7 +690,7 @@ describe 'holdup.timeout', ->
 
   it 'fires timers in order', (done) ->
     called = false
-    timed = holdup.timeout 100
+    timed = holdup.wait 100
     timed.then ->
       expect(called).to.be true
       done()
@@ -699,7 +699,7 @@ describe 'holdup.timeout', ->
     , 10
 
   it 'passes the time back to the callback', (done) ->
-    holdup.timeout(100).then (time) ->
+    holdup.wait(100).then (time) ->
       expect(time).to.be 100
       done()
 
@@ -730,24 +730,24 @@ describe 'holdup.delay', ->
 
 
 
-describe 'holdup.circuitBreak', ->
+describe 'holdup.timeout', ->
   it 'fulfills as normal if the promise fulfills in time', (done) ->
     promise = holdup.make (fulfill) -> setTimeout (-> fulfill(100)), 50
-    safe = holdup.circuitBreak promise, 100
+    safe = holdup.timeout promise, 100
     safe.then (data) ->
       expect(data).to.be 100
       done()
 
   it 'rejects if the promise does not fulfill in time', (done) ->
     promise = holdup.make (fulfill) -> setTimeout (-> fulfill(100)), 100
-    safe = holdup.circuitBreak promise, 50
+    safe = holdup.timeout promise, 50
     safe.then null, (err) ->
       expect(err).to.be 'Error: 50ms timeout exceeded.'
       done()
 
   it 'rejects if the promise rejects', (done) ->
     promise = holdup.make (fulfill, reject) -> setTimeout (-> reject('err')), 50
-    safe = holdup.circuitBreak promise, 100
+    safe = holdup.timeout promise, 100
     safe.then null, (err) ->
       expect(err).to.be 'err'
       done()
