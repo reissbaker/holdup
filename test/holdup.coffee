@@ -720,13 +720,37 @@ describe 'holdup.delay', ->
   it 'rejects after a delay', (done) ->
     called = false
     promise = holdup.make (fulfill, reject) -> reject('err')
-    delayed = holdup.delay 60, promise
+    delayed = holdup.delay promise, 60
     delayed.then null, (err) ->
       called = true
-      expect(err).to.eql promise
+      expect(err).to.eql 'err'
       done()
     promise.then null, ->
       expect(called).to.be false
+
+
+
+describe 'holdup.circuitBreak', ->
+  it 'fulfills as normal if the promise fulfills in time', (done) ->
+    promise = holdup.make (fulfill) -> setTimeout (-> fulfill(100)), 50
+    safe = holdup.circuitBreak promise, 100
+    safe.then (data) ->
+      expect(data).to.be 100
+      done()
+
+  it 'rejects if the promise does not fulfill in time', (done) ->
+    promise = holdup.make (fulfill) -> setTimeout (-> fulfill(100)), 100
+    safe = holdup.circuitBreak promise, 50
+    safe.then null, (err) ->
+      expect(err).to.be 'Error: 50ms timeout exceeded.'
+      done()
+
+  it 'rejects if the promise rejects', (done) ->
+    promise = holdup.make (fulfill, reject) -> setTimeout (-> reject('err')), 50
+    safe = holdup.circuitBreak promise, 100
+    safe.then null, (err) ->
+      expect(err).to.be 'err'
+      done()
 
 
 
