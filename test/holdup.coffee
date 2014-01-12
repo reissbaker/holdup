@@ -705,6 +705,31 @@ describe 'holdup.timeout', ->
 
 
 
+describe 'holdup.delay', ->
+  it 'fires callbacks after a delay', (done) ->
+    called = false
+    promise = holdup.make (fulfill) -> fulfill(100)
+    delayed = holdup.delay promise, 60
+    delayed.then (data) ->
+      called = true
+      expect(data).to.eql 100
+      done()
+    promise.then ->
+      expect(called).to.be false
+
+  it 'rejects after a delay', (done) ->
+    called = false
+    promise = holdup.make (fulfill, reject) -> reject('err')
+    delayed = holdup.delay 60, promise
+    delayed.then null, (err) ->
+      called = true
+      expect(err).to.eql promise
+      done()
+    promise.then null, ->
+      expect(called).to.be false
+
+
+
 describe 'holdup.data', ->
   it 'collects all the data from fulfilled promises', (done) ->
     a = new Deferred
