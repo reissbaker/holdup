@@ -1,12 +1,23 @@
-HOLDUP
-================================================================================
+```
+ /$$                 /$$       /$$
+| $$                | $$      | $$
+| $$$$$$$   /$$$$$$ | $$  /$$$$$$$ /$$   /$$  /$$$$$$
+| $$__  $$ /$$__  $$| $$ /$$__  $$| $$  | $$ /$$__  $$
+| $$  \ $$| $$  \ $$| $$| $$  | $$| $$  | $$| $$  \ $$
+| $$  | $$| $$  | $$| $$| $$  | $$| $$  | $$| $$  | $$
+| $$  | $$|  $$$$$$/| $$|  $$$$$$$|  $$$$$$/| $$$$$$$/
+|__/  |__/ \______/ |__/ \_______/ \______/ | $$____/
+                                            | $$
+                                            | $$
+                                            |__/
+```
 
-Holdup is a tiny but full-featured flow-control library based on the
-Promises/A+ spec that makes working with callbacks in Javascript easy. With
-Holdup you define the dependencies of your functions and it executes them for
-you with maximal concurrency: you don't have to explicitly state whether
-they're parallel or serial, or what order each one should run in. It just
-works.
+
+Holdup is a tiny but full-featured flow-control library that makes working with
+promises or callbacks in Javascript easy. With Holdup you define the
+dependencies of your functions and it executes them for you with maximal
+concurrency: you don't have to explicitly state whether they're parallel or
+serial, or what order each one should run in. It just works.
 
 Holdup runs in Node, Component-spec environments, and ordinary browsers; it has
 no dependencies and is extensively unit-tested. It works with any CommonJS
@@ -16,7 +27,7 @@ its own Promises/A+ compliant promise implementation. It clocks in at less than
 
 
 Examples
---------------------------------------------------------------------------------
+================================================================================
 
 Here's an example of how to define a task that depends on three other
 Node-style async functions:
@@ -109,9 +120,10 @@ your own promises. Keep reading for the full API documentation.
 
 
 API
---------------------------------------------------------------------------------
+================================================================================
 
-### Manipulating Promises
+Manipulating Promises
+--------------------------------------------------------------------------------
 
 ##### holdup.make(callback)
 
@@ -233,7 +245,8 @@ promises callback.
 
 
 
-### Working With Values
+Working With Values
+--------------------------------------------------------------------------------
 
 ##### holdup.data(promises..., callback)
 
@@ -278,7 +291,8 @@ as `undefined`.
 
 
 
-### Timing Functions
+Timing Functions
+--------------------------------------------------------------------------------
 
 ##### holdup.timeout(milliseconds)
 
@@ -306,7 +320,8 @@ time is up and rejects otherwise.
 
 
 
-### Integrating With Node-style Async Functions
+Integrating With Node-style Callback APIs
+--------------------------------------------------------------------------------
 
 ##### holdup.napply(scope, nodeFn, args)
 
@@ -405,7 +420,7 @@ exposing only a callback API.
 
 
 License
---------------------------------------------------------------------------------
+================================================================================
 
 Copyright 2013-2014 Matt Baker. Licensed under the MIT License: see LICENSE.txt
 for details.
