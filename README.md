@@ -111,7 +111,20 @@ your own promises. Keep reading for the full API documentation.
 API
 --------------------------------------------------------------------------------
 
-### holdup.all(promises...)
+### Manipulating Promises
+
+#### holdup.make(callback)
+
+Given a callback of form `function(fulfill, reject) {}`, returns a promise that
+will be fulfilled when the callback calls `fulfill` or rejected when the
+promise calls `reject`.
+
+The returned promise will call its `then` callback with whatever is passed to
+the `fulfill` callback, and will call its `then` errback with whatever is
+passed to the `reject` errback.
+
+
+#### holdup.all(promises...)
 
 Takes an arg list, array, array of arrays, arg lists of arrays... etc
 containing promises.
@@ -124,7 +137,7 @@ the order that they fulfilled. It will call its `then` errback with the first
 promise to reject.
 
 
-### holdup.none(promises...)
+#### holdup.none(promises...)
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -137,7 +150,7 @@ rejected promises, in the order that they rejected. It will call its `then`
 errback with the first promise to fulfill.
 
 
-### holdup.resolved(promises...)
+#### holdup.resolved(promises...)
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -154,7 +167,7 @@ rejected. If no promises fulfilled, the first argument will be an empty array;
 if no promises rejected, the first argument will similarly be an empty list.
 
 
-### holdup.firstFulfilled(promises...)
+#### holdup.firstFulfilled(promises...)
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -167,7 +180,7 @@ promise, and will call its `then` errback with the array of all rejected
 promises in the order that they rejected.
 
 
-### holdup.firstRejected(promises...)
+#### holdup.firstRejected(promises...)
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -180,7 +193,7 @@ promise, and will call its `then` errback with the array of all fulfilled
 promises in the order that they fulfilled.
 
 
-### holdup.lastFulfilled(promises...)
+#### holdup.lastFulfilled(promises...)
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -194,7 +207,7 @@ promise, and will call its `then` errback with the array of all rejected
 promises in the order that they rejected.
 
 
-### holdup.lastRejected(promises...)
+#### holdup.lastRejected(promises...)
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -208,7 +221,7 @@ promise, and will call its `then` errback with the array of all fulfilled
 promises in the order that they fulfilled.
 
 
-### holdup.invert(promise)
+#### holdup.invert(promise)
 
 Given a promise, returns a promise that will reject when the given promise
 fulfills and will fulfill when the given promise rejects.
@@ -219,7 +232,10 @@ errback of the given promise, it will be passed as the data to the returned
 promises callback.
 
 
-### holdup.data(promises..., callback)
+
+### Working With Values
+
+#### holdup.data(promises..., callback)
 
 Takes a list of promises (in array or arg list form) containing promises, and a
 callback function.
@@ -240,7 +256,7 @@ are resolved in a rejected state, their corresponding data will be passed in as
 `undefined`.
 
 
-### holdup.errors(promises..., callback)
+#### holdup.errors(promises..., callback)
 
 Takes a list of promises (in array or arg list form) containing promises, and a
 callback function.
@@ -261,22 +277,42 @@ are resolved in a fulfilled state, their corresponding error will be passed in
 as `undefined`.
 
 
-### holdup.make(callback)
 
-Given a callback of form `function(fulfill, reject) {}`, returns a promise that
-will be fulfilled when the callback calls `fulfill` or rejected when the
-promise calls `reject`.
+### Timing Functions
 
-The returned promise will call its `then` callback with whatever is passed to
-the `fulfill` callback, and will call its `then` errback with whatever is
-passed to the `reject` errback.
+#### holdup.timeout(milliseconds)
+
+Given a time in milliseconds, returns a promise that calls its `then` callback
+after that amount of time. The returned promise will never call any errback
+functions given to it.
+
+The returned promise will pass along the given timeout interval to the `then`
+callback as its first parameter.
 
 
-### holdup.wrap(nodeFn, args...)
+#### holdup.delay(promise, milliseconds)
 
-Given a Node-style async function, and optional arguments, returns a promise
-that fulfills if the given function completes successfully and rejects if it
-doesn't.
+Given a time in milliseconds and arg list, array, array of arrays, arg list of
+arrays..., returns a promise that fulfills when all of the promises fulfill or
+rejects when the first one rejects, but waits the given time before fulfilling
+or rejecting.
+
+
+#### holdup.circuitBreak(promise, milliseconds)
+
+Given a time in milliseconds and arg list, array, array of arrays, arg list of
+arrays..., returns a promise that fulfills if the promises fulfill before the
+time is up and rejects otherwise.
+
+
+
+### Integrating With Node-style Async Functions
+
+#### holdup.napply(scope, nodeFn, args)
+
+Given a scope, a Node-style async function, and an array of arguments, returns
+a promise that fulfills if the given function completes successfully and
+rejects if it doesn't.
 
 The returned promise will call its `then` callback with anything passed as the
 `data` parameter to the async function (if anything is in fact passed), and
@@ -284,7 +320,13 @@ will call its `then` errback with anything passed as the `err` param to the
 async function.
 
 
-### holdup.wrapFor(scope, nodeFn, args...)
+#### holdup.nfapply(nodeFn, args)
+
+A convenient, scopeless version of `napply`, for times when it's acceptable
+that the scope of `napply` be `null`.
+
+
+#### holdup.ncall(scope, nodeFn, args...)
 
 Given a scope, a Node-style async function, and optional arguments, returns a
 promise that fulfills if the given function completes successfully and rejects
@@ -296,14 +338,70 @@ will call its `then` errback with anything passed as the `err` param to the
 async function.
 
 
-### holdup.timeout(milliseconds)
+#### holdup.nfcall
 
-Given a time in milliseconds, returns a promise that calls its `then` callback
-after that amount of time. The returned promise will never call any errback
-functions given to it.
+A convenient, scopeless version of `ncall`, for times when it's acceptable that
+the scope of `ncall` be `null`.
 
-The returned promise will pass along the given timeout interval to the `then`
-callback as its first parameter.
+
+#### holdup.npost(obj, methodName, args)
+
+Given an object, a method name corresponding to a Node-style async function,
+and an array of arguments, returns a promise that fulfills if the given method
+completes successfully and rejects if it doesn't.
+
+The returned promise will call its `then` callback with anything passed as the
+`data` parameter to the async function (if anything is in fact passed), and
+will call its `then` errback with anything passed as the `err` param to the
+async function.
+
+
+#### holdup.ninvoke(obj, methodName, args...)
+
+Given an object, a method name corresponding to a Node-style async function,
+and an optional argument list of parameters, returns a promise that fulfills if
+the given method completes successfully and rejects if it doesn't.
+
+The returned promise will call its `then` callback with anything passed as the
+`data` parameter to the async function (if anything is in fact passed), and
+will call its `then` errback with anything passed as the `err` param to the
+async function.
+
+
+#### holdup.nbind(nodeFn, scope, args...)
+
+Given a Node-style async function, a scope, and an optional argument list of
+parameters, returns a promise-returning function bound to the scope and the
+given parameters.
+
+The returned promise will call its `then` callback with anything passed as the
+`data` parameter to the async function (if anything is in fact passed), and
+will call its `then` errback with anything passed as the `err` param to the
+async function.
+
+For example:
+
+```javascript
+var readProust = holdup.bind(fs.readFile, fs, 'proust.txt', 'utf-8');
+readProust().then(function(text) {
+  // do things with text
+});
+```
+
+
+#### holdup.nfbind
+
+A convenient, scopeless version of nbind, for times when it's acceptable that
+the scope of `nbind` be `null`.
+
+
+#### holdup.nodeify
+
+Given a promise and a Node-style callback, calls the callback with the correct
+`data` and `err` arguments when the promise fulfills or rejects.  Useful for
+creating dual promise/callback APIs, or for using promises internally but
+exposing only a callback API.
+
 
 
 License
