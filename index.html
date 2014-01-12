@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Holdup by reissbaker</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Holdup</h1>
+          <h2>Wrangle CommonJS Promises.</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/reissbaker/holdup/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/reissbaker/holdup/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/reissbaker/holdup" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <pre><code> /$$                 /$$       /$$
+| $$                | $$      | $$
+| $$$$$$$   /$$$$$$ | $$  /$$$$$$$ /$$   /$$  /$$$$$$
+| $$__  $$ /$$__  $$| $$ /$$__  $$| $$  | $$ /$$__  $$
+| $$  \ $$| $$  \ $$| $$| $$  | $$| $$  | $$| $$  \ $$
+| $$  | $$| $$  | $$| $$| $$  | $$| $$  | $$| $$  | $$
+| $$  | $$|  $$$$$$/| $$|  $$$$$$$|  $$$$$$/| $$$$$$$/
+|__/  |__/ \______/ |__/ \_______/ \______/ | $$____/
+                                            | $$
+                                            | $$
+                                            |__/
+</code></pre>
+
+<p>Holdup is a tiny but full-featured flow-control library that makes working with
+promises or callbacks in Javascript easy. With Holdup you define the
+dependencies of your functions and it executes them for you with maximal
+concurrency: you don't have to explicitly state whether they're parallel or
+serial, or what order each one should run in. It just works.</p>
+
+<p>Holdup runs in Node, Component-spec environments, and ordinary browsers; it has
+no dependencies and is extensively unit-tested. It works with any CommonJS
+Promises/A or Promises/A+ compliant promise implementation; it also provides
+its own Promises/A+ compliant promise implementation. It clocks in at less than
+1.8k minified and gzipped.</p>
+
+<h1>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h1>
+
+<p>Here's an example of how to define a task that depends on three other
+Node-style async functions:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">taskA</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">nodeFn</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">taskB</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">otherNodeFn</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">taskC</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">finalNodeFn</span><span class="p">,</span> <span class="nx">arg1</span><span class="p">,</span> <span class="nx">arg2</span><span class="p">);</span>
+
+<span class="nx">holdup</span><span class="p">.</span><span class="nx">all</span><span class="p">(</span><span class="nx">taskA</span><span class="p">,</span> <span class="nx">taskB</span><span class="p">,</span> <span class="nx">taskC</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// do work</span>
+<span class="p">},</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// handle errors</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>In this case, <code>taskA</code>, <code>taskB</code>, and <code>taskC</code> will all immediately execute in
+parallel, and the work will wait until all three finish successfully. If any of
+the dependencies fail, the error callback will be called. All of the tasks are
+themselves just Promises/A+ compliant promises, so they can be used with any
+library that works with Promises/A or Promises/A+.</p>
+
+<p>That was a simple example, though: do some work in parallel, and when it
+finishes do some other work. What if we have multiple dependencies on separate
+parallel workloads? Holdup handles that well too:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">taskA</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnA</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">taskB</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnB</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">taskC</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">all</span><span class="p">(</span><span class="nx">taskA</span><span class="p">,</span> <span class="nx">taskB</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnC</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="kd">var</span> <span class="nx">taskD</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">all</span><span class="p">(</span><span class="nx">taskA</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnD</span><span class="p">);</span> <span class="p">});</span>
+
+<span class="kd">var</span> <span class="nx">taskE</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">all</span><span class="p">(</span><span class="nx">taskC</span><span class="p">,</span> <span class="nx">taskD</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnE</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>In the above, <code>taskE</code> depends both on <code>taskC</code> and <code>taskD</code>. <code>taskD</code> depends on
+<code>taskA</code>, as does <code>taskC</code> -- but <code>taskC</code> has an additional dependency on
+<code>taskB</code>. This might be a pain to hand-optimize with raw callbacks, but since
+you just have to specify dependencies you can let Holdup take care of the work
+for you.</p>
+
+<p>Holdup understands more than success, though. Sometimes, things break; it's
+still important to handle those failures. It might also be important to take
+certain actions if <em>enough</em> things break, or if specific combinations of things
+break. With Holdup, it's easy to define those relationships:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">taskA</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnA</span><span class="p">),</span>
+    <span class="nx">taskB</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnB</span><span class="p">),</span>
+    <span class="nx">taskC</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnC</span><span class="p">),</span>
+    <span class="nx">taskD</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">all</span><span class="p">(</span><span class="nx">taskA</span><span class="p">,</span> <span class="nx">taskB</span><span class="p">),</span>
+    <span class="nx">taskE</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">none</span><span class="p">(</span><span class="nx">taskC</span><span class="p">,</span> <span class="nx">taskD</span><span class="p">);</span>
+
+<span class="nx">taskE</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// only gets called when taskC and taskD both error out</span>
+<span class="p">},</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// gets called if either taskC or taskD pass, or if they both do</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>Similarly, Holdup has a <code>resolved</code> function that fulfills once everything has
+resolved -- even if everything resolved to an error state, or if some resolved
+one way and others resolved another. It passes the fulfilled and rejected
+promises in separate arrays to the <code>then</code> callback, as so:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">taskA</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnA</span><span class="p">),</span>
+    <span class="nx">taskB</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnB</span><span class="p">),</span>
+    <span class="nx">taskC</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnC</span><span class="p">),</span>
+    <span class="nx">taskD</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">resolved</span><span class="p">(</span><span class="nx">taskA</span><span class="p">,</span> <span class="nx">taskB</span><span class="p">,</span> <span class="nx">taskC</span><span class="p">);</span>
+
+<span class="nx">taskD</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">fulfilled</span><span class="p">,</span> <span class="nx">rejected</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// this is called once taskA, taskB, and taskC are no longer in pending</span>
+  <span class="c1">// states.</span>
+  <span class="c1">// fulfilled is an array of which tasks have fulfilled, and rejected is an</span>
+  <span class="c1">// array of which tasks have rejected.</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>The <code>all</code>, <code>none</code>, and <code>resolved</code> functions form the basis of Holdup's API, but
+they're not the only ones available. Holdup provides a full-featured functional
+API for working with promises, wrapping Node-style functions, and easily making
+your own promises. Keep reading for the full API documentation.</p>
+
+<h1>
+<a name="api" class="anchor" href="#api"><span class="octicon octicon-link"></span></a>API</h1>
+
+<h2>
+<a name="manipulating-promises" class="anchor" href="#manipulating-promises"><span class="octicon octicon-link"></span></a>Manipulating Promises</h2>
+
+<h5>
+<a name="holdupmakecallback" class="anchor" href="#holdupmakecallback"><span class="octicon octicon-link"></span></a>holdup.make(callback)</h5>
+
+<p>Given a callback of form <code>function(fulfill, reject) {}</code>, returns a promise that
+will be fulfilled when the callback calls <code>fulfill</code> or rejected when the
+promise calls <code>reject</code>.</p>
+
+<p>The returned promise will call its <code>then</code> callback with whatever is passed to
+the <code>fulfill</code> callback, and will call its <code>then</code> errback with whatever is
+passed to the <code>reject</code> errback.</p>
+
+<h5>
+<a name="holdupallpromises" class="anchor" href="#holdupallpromises"><span class="octicon octicon-link"></span></a>holdup.all(promises...)</h5>
+
+<p>Takes an arg list, array, array of arrays, arg lists of arrays... etc
+containing promises.</p>
+
+<p>Returns a promise that will be fulfilled if all the promises fulfill, and will
+reject as soon as any of the promises reject.</p>
+
+<p>It will call its <code>then</code> callback with the array of all fulfilled promises, in
+the order that they fulfilled. It will call its <code>then</code> errback with the first
+promise to reject.</p>
+
+<h5>
+<a name="holdupnonepromises" class="anchor" href="#holdupnonepromises"><span class="octicon octicon-link"></span></a>holdup.none(promises...)</h5>
+
+<p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
+promises.</p>
+
+<p>Returns a promise that will be fulfilled if all of the promises reject, and
+will reject as soon as any of the promises fulfill.</p>
+
+<p>The returned promise will call its <code>then</code> callback with the array of all
+rejected promises, in the order that they rejected. It will call its <code>then</code>
+errback with the first promise to fulfill.</p>
+
+<h5>
+<a name="holdupresolvedpromises" class="anchor" href="#holdupresolvedpromises"><span class="octicon octicon-link"></span></a>holdup.resolved(promises...)</h5>
+
+<p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
+promises.</p>
+
+<p>Returns a promise that will be fulfilled once all of the given promises are no
+longer in a pending state; i.e., once they've each been rejected or fulfilled.
+The promises don't have to end in the same state: they only have to leave the
+pending state.</p>
+
+<p>The returned promise will call its <code>then</code> callback with two arguments: the
+first is an array of all fulfilled promises in the order that they fulfilled,
+and the second is an array of all rejected promises in the order that they
+rejected. If no promises fulfilled, the first argument will be an empty array;
+if no promises rejected, the first argument will similarly be an empty list.</p>
+
+<h5>
+<a name="holdupfirstfulfilledpromises" class="anchor" href="#holdupfirstfulfilledpromises"><span class="octicon octicon-link"></span></a>holdup.firstFulfilled(promises...)</h5>
+
+<p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
+promises.</p>
+
+<p>Returns a promise that will be fulfilled as soon as the first of the given
+promises fulfills, and will reject if none of the promises fulfill.</p>
+
+<p>The returned promise will call its <code>then</code> callback with the first fulfilled
+promise, and will call its <code>then</code> errback with the array of all rejected
+promises in the order that they rejected.</p>
+
+<h5>
+<a name="holdupfirstrejectedpromises" class="anchor" href="#holdupfirstrejectedpromises"><span class="octicon octicon-link"></span></a>holdup.firstRejected(promises...)</h5>
+
+<p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
+promises.</p>
+
+<p>Returns a promise that will be fulfilled as soon as the first of the given
+promises rejects, and will reject if none of the promises reject.</p>
+
+<p>The returned promise will call its <code>then</code> callback with the first rejected
+promise, and will call its <code>then</code> errback with the array of all fulfilled
+promises in the order that they fulfilled.</p>
+
+<h5>
+<a name="holduplastfulfilledpromises" class="anchor" href="#holduplastfulfilledpromises"><span class="octicon octicon-link"></span></a>holdup.lastFulfilled(promises...)</h5>
+
+<p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
+promises.</p>
+
+<p>Returns a promise that will be fulfilled once all of the promises have left
+their pending state, and at least one has fulfilled. It will reject if all
+given promises reject.</p>
+
+<p>The returned promise will call its <code>then</code> callback with the last fulfilled
+promise, and will call its <code>then</code> errback with the array of all rejected
+promises in the order that they rejected.</p>
+
+<h5>
+<a name="holduplastrejectedpromises" class="anchor" href="#holduplastrejectedpromises"><span class="octicon octicon-link"></span></a>holdup.lastRejected(promises...)</h5>
+
+<p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
+promises.</p>
+
+<p>Returns a promise that will be fulfilled once all of the promises have left
+their pending state, and at least one has rejected. It will reject if all given
+promises fulfill.</p>
+
+<p>The returned promise will call its <code>then</code> callback with the first rejected
+promise, and will call its <code>then</code> errback with the array of all fulfilled
+promises in the order that they fulfilled.</p>
+
+<h5>
+<a name="holdupinvertpromise" class="anchor" href="#holdupinvertpromise"><span class="octicon octicon-link"></span></a>holdup.invert(promise)</h5>
+
+<p>Given a promise, returns a promise that will reject when the given promise
+fulfills and will fulfill when the given promise rejects.</p>
+
+<p>If data is passed to the callback of the given promise, it will be passed as
+the error to the returned promise's errback. If an error is passed to the
+errback of the given promise, it will be passed as the data to the returned
+promises callback.</p>
+
+<h2>
+<a name="working-with-values" class="anchor" href="#working-with-values"><span class="octicon octicon-link"></span></a>Working With Values</h2>
+
+<h5>
+<a name="holdupdatapromises-callback" class="anchor" href="#holdupdatapromises-callback"><span class="octicon octicon-link"></span></a>holdup.data(promises..., callback)</h5>
+
+<p>Takes a list of promises (in array or arg list form) containing promises, and a
+callback function.</p>
+
+<p>Calls the callback function with the data from the promises' <code>then</code> callbacks,
+ordered according to the promises' ordering in the arguments.</p>
+
+<p>For example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="nx">holdup</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">,</span> <span class="nx">c</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">aData</span><span class="p">,</span> <span class="nx">bData</span><span class="p">,</span> <span class="nx">cData</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// do things with the data from a, b, and c</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>The callback will only be called once all promises have resolved. If promises
+are resolved in a rejected state, their corresponding data will be passed in as
+<code>undefined</code>.</p>
+
+<h5>
+<a name="holduperrorspromises-callback" class="anchor" href="#holduperrorspromises-callback"><span class="octicon octicon-link"></span></a>holdup.errors(promises..., callback)</h5>
+
+<p>Takes a list of promises (in array or arg list form) containing promises, and a
+callback function.</p>
+
+<p>Calls the callback function with the errors from the promises' <code>then</code> errbacks,
+ordered according to the promises' ordering in the arguments.</p>
+
+<p>For example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="nx">holdup</span><span class="p">.</span><span class="nx">errors</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">,</span> <span class="nx">c</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">aError</span><span class="p">,</span> <span class="nx">bError</span><span class="p">,</span> <span class="nx">cError</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// do things with the errors from a, b, and c</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>The callback will only be called once all promises have resolved. If promises
+are resolved in a fulfilled state, their corresponding error will be passed in
+as <code>undefined</code>.</p>
+
+<h2>
+<a name="timing-functions" class="anchor" href="#timing-functions"><span class="octicon octicon-link"></span></a>Timing Functions</h2>
+
+<h5>
+<a name="holduptimeoutmilliseconds" class="anchor" href="#holduptimeoutmilliseconds"><span class="octicon octicon-link"></span></a>holdup.timeout(milliseconds)</h5>
+
+<p>Given a time in milliseconds, returns a promise that calls its <code>then</code> callback
+after that amount of time. The returned promise will never call any errback
+functions given to it.</p>
+
+<p>The returned promise will pass along the given timeout interval to the <code>then</code>
+callback as its first parameter.</p>
+
+<h5>
+<a name="holdupdelaypromise-milliseconds" class="anchor" href="#holdupdelaypromise-milliseconds"><span class="octicon octicon-link"></span></a>holdup.delay(promise, milliseconds)</h5>
+
+<p>Given a time in milliseconds and arg list, array, array of arrays, arg list of
+arrays..., returns a promise that fulfills when all of the promises fulfill or
+rejects when the first one rejects, but waits the given time before fulfilling
+or rejecting.</p>
+
+<h5>
+<a name="holdupcircuitbreakpromise-milliseconds" class="anchor" href="#holdupcircuitbreakpromise-milliseconds"><span class="octicon octicon-link"></span></a>holdup.circuitBreak(promise, milliseconds)</h5>
+
+<p>Given a time in milliseconds and arg list, array, array of arrays, arg list of
+arrays..., returns a promise that fulfills if the promises fulfill before the
+time is up and rejects otherwise.</p>
+
+<h2>
+<a name="integrating-with-node-style-callback-apis" class="anchor" href="#integrating-with-node-style-callback-apis"><span class="octicon octicon-link"></span></a>Integrating With Node-style Callback APIs</h2>
+
+<h5>
+<a name="holdupnapplyscope-nodefn-args" class="anchor" href="#holdupnapplyscope-nodefn-args"><span class="octicon octicon-link"></span></a>holdup.napply(scope, nodeFn, args)</h5>
+
+<p>Given a scope, a Node-style async function, and an array of arguments, returns
+a promise that fulfills if the given function completes successfully and
+rejects if it doesn't.</p>
+
+<p>The returned promise will call its <code>then</code> callback with anything passed as the
+<code>data</code> parameter to the async function (if anything is in fact passed), and
+will call its <code>then</code> errback with anything passed as the <code>err</code> param to the
+async function.</p>
+
+<h5>
+<a name="holdupnfapplynodefn-args" class="anchor" href="#holdupnfapplynodefn-args"><span class="octicon octicon-link"></span></a>holdup.nfapply(nodeFn, args)</h5>
+
+<p>A convenient, scopeless version of <code>napply</code>, for times when it's acceptable
+that the scope of <code>napply</code> be <code>null</code>.</p>
+
+<h5>
+<a name="holdupncallscope-nodefn-args" class="anchor" href="#holdupncallscope-nodefn-args"><span class="octicon octicon-link"></span></a>holdup.ncall(scope, nodeFn, args...)</h5>
+
+<p>Given a scope, a Node-style async function, and optional arguments, returns a
+promise that fulfills if the given function completes successfully and rejects
+if it doesn't.</p>
+
+<p>The returned promise will call its <code>then</code> callback with anything passed as the
+<code>data</code> parameter to the async function (if anything is in fact passed), and
+will call its <code>then</code> errback with anything passed as the <code>err</code> param to the
+async function.</p>
+
+<h5>
+<a name="holdupnfcall" class="anchor" href="#holdupnfcall"><span class="octicon octicon-link"></span></a>holdup.nfcall</h5>
+
+<p>A convenient, scopeless version of <code>ncall</code>, for times when it's acceptable that
+the scope of <code>ncall</code> be <code>null</code>.</p>
+
+<h5>
+<a name="holdupnpostobj-methodname-args" class="anchor" href="#holdupnpostobj-methodname-args"><span class="octicon octicon-link"></span></a>holdup.npost(obj, methodName, args)</h5>
+
+<p>Given an object, a method name corresponding to a Node-style async function,
+and an array of arguments, returns a promise that fulfills if the given method
+completes successfully and rejects if it doesn't.</p>
+
+<p>The returned promise will call its <code>then</code> callback with anything passed as the
+<code>data</code> parameter to the async function (if anything is in fact passed), and
+will call its <code>then</code> errback with anything passed as the <code>err</code> param to the
+async function.</p>
+
+<h5>
+<a name="holdupninvokeobj-methodname-args" class="anchor" href="#holdupninvokeobj-methodname-args"><span class="octicon octicon-link"></span></a>holdup.ninvoke(obj, methodName, args...)</h5>
+
+<p>Given an object, a method name corresponding to a Node-style async function,
+and an optional argument list of parameters, returns a promise that fulfills if
+the given method completes successfully and rejects if it doesn't.</p>
+
+<p>The returned promise will call its <code>then</code> callback with anything passed as the
+<code>data</code> parameter to the async function (if anything is in fact passed), and
+will call its <code>then</code> errback with anything passed as the <code>err</code> param to the
+async function.</p>
+
+<h5>
+<a name="holdupnbindnodefn-scope-args" class="anchor" href="#holdupnbindnodefn-scope-args"><span class="octicon octicon-link"></span></a>holdup.nbind(nodeFn, scope, args...)</h5>
+
+<p>Given a Node-style async function, a scope, and an optional argument list of
+parameters, returns a promise-returning function bound to the scope and the
+given parameters.</p>
+
+<p>The returned promise will call its <code>then</code> callback with anything passed as the
+<code>data</code> parameter to the async function (if anything is in fact passed), and
+will call its <code>then</code> errback with anything passed as the <code>err</code> param to the
+async function.</p>
+
+<p>For example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">readProust</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span><span class="p">,</span> <span class="nx">fs</span><span class="p">,</span> <span class="s1">'proust.txt'</span><span class="p">,</span> <span class="s1">'utf-8'</span><span class="p">);</span>
+<span class="nx">readProust</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">text</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// do things with text</span>
+<span class="p">});</span>
+</pre></div>
+
+<h5>
+<a name="holdupnfbindnodefn-args" class="anchor" href="#holdupnfbindnodefn-args"><span class="octicon octicon-link"></span></a>holdup.nfbind(nodeFn, args...)</h5>
+
+<p>A convenient, scopeless version of nbind, for times when it's acceptable that
+the scope of <code>nbind</code> be <code>null</code>.</p>
+
+<h5>
+<a name="holdupnodeifypromise-callback" class="anchor" href="#holdupnodeifypromise-callback"><span class="octicon octicon-link"></span></a>holdup.nodeify(promise, callback)</h5>
+
+<p>Given a promise and a Node-style callback, calls the callback with the correct
+<code>data</code> and <code>err</code> arguments when the promise fulfills or rejects.  Useful for
+creating dual promise/callback APIs, or for using promises internally but
+exposing only a callback API.</p>
+
+<h1>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h1>
+
+<p>Copyright 2013-2014 Matt Baker. Licensed under the MIT License: see LICENSE.txt
+for details.</p>
+        </section>
+
+        <footer>
+          Holdup is maintained by <a href="https://github.com/reissbaker">reissbaker</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
