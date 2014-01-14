@@ -290,9 +290,8 @@
   }
 
 
-
   /*
-   * Manipulating Promises
+   * Creating Promises
    * ---------------------------------------------------------------------------
    */
 
@@ -314,6 +313,43 @@
     callback(bind(deferred.fulfill, deferred), bind(deferred.reject, deferred));
     return deferred.promise();
   };
+
+
+  /*
+   * ### holdup.fulfill
+   *
+   * Given a function that returns a value, returns a promise that will fulfill
+   * to the result of the given function.
+   *
+   * Essentially a degenerate, but convenient form of `holdup.make` for
+   * creating promises that you know will fulfill to a specific value.
+   */
+
+  root.fulfill = root.fcall = function(fn) {
+    return root.make(function(fulfill) { fulfill(fn()); });
+  };
+
+
+  /*
+   * ### holdup.reject
+   *
+   * Given a function that returns a value, returns a promise that will reject
+   * with the result of the given function passed as the rejection reason.
+   *
+   * Essentially a degenerate but convenient form of `holdup.make` for creating
+   * promises that you know will reject to a specific value.
+   */
+
+  root.reject = function(fn) {
+    return root.make(function(fulfill, reject) { reject(fn()); });
+  };
+
+
+
+  /*
+   * Manipulating Promises
+   * ---------------------------------------------------------------------------
+   */
 
 
   /*

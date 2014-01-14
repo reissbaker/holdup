@@ -22,7 +22,7 @@ serial, or what order each one should run in. It just works.
 Holdup runs in Node, Component-spec environments, and ordinary browsers; it has
 no dependencies and is extensively unit-tested. It works with any CommonJS
 Promises/A or Promises/A+ compliant promise implementation; it also provides
-its own Promises/A+ compliant promise implementation. It clocks in at less than
+its own Promises/A+ compliant promise implementation. It clocks in at a skinny
 1.8k minified and gzipped.
 
 
@@ -122,7 +122,8 @@ your own promises. Keep reading for the full API documentation.
 API
 ================================================================================
 
-Manipulating Promises
+
+Creating Promises
 --------------------------------------------------------------------------------
 
 ##### holdup.make(callback)
@@ -135,6 +136,28 @@ The returned promise will call its `then` callback with whatever is passed to
 the `fulfill` callback, and will call its `then` errback with whatever is
 passed to the `reject` errback.
 
+
+##### holdup.fulfill(fn)
+
+Given a function that returns a value, returns a promise that will fulfill to
+the result of the given function.
+
+Essentially a degenerate, but convenient form of `holdup.make` for creating
+promises that you know will fulfill to a specific value.
+
+
+##### holdup.reject(fn)
+
+Given a function that returns a value, returns a promise that will reject with
+the result of the given function passed as the rejection reason.
+
+Essentially a degenerate but convenient form of `holdup.make` for creating
+promises that you know will reject to a specific value.
+
+
+
+Manipulating Promises
+--------------------------------------------------------------------------------
 
 ##### holdup.all(promises...)
 
