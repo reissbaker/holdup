@@ -584,9 +584,21 @@ describe 'holdup.make', ->
     promise = holdup.make (fulfill) -> fulfill()
     promise.then -> done()
 
+  it 'passes the argument to fulfill to the then callback', (done) ->
+    promise = holdup.make (fulfill) -> fulfill(10)
+    promise.then (val) ->
+      expect(val).to.be 10
+      done()
+
   it 'creates a promise that is rejected when the reject callback is called', (done) ->
     promise = holdup.make (fulfill, reject) -> reject()
     promise.then null, -> done()
+
+  it 'passes the argument to reject to the then errback', (done) ->
+    promise = holdup.make (fulfill, reject) -> reject('because')
+    promise.then null, (err) ->
+      expect(err).to.be 'because'
+      done()
 
 
 
