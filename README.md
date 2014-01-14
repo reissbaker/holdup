@@ -1,3 +1,8 @@
+<a href="http://promises-aplus.github.com/promises-spec">
+    <img src="http://promises-aplus.github.com/promises-spec/assets/logo-small.png"
+         align="right" alt="Promises/A+ logo" />
+</a>
+
 ```
  /$$                 /$$       /$$
 | $$                | $$      | $$
@@ -11,7 +16,6 @@
                                             | $$
                                             |__/
 ```
-
 
 Holdup is a tiny but full-featured flow-control library that makes working with
 promises or callbacks in Javascript easy. With Holdup you define the
