@@ -156,14 +156,14 @@ only be called if the given rejection reason is an instance of `ErrorClass`.
 
 ##### promise.thrown(onThrown)
 
-*:warning: Warning: `promise.thrown` is not interoperable with other Promises/A+ spec
-libraries; the Promises/A+ spec doesn't make it possible in a general case to
-tell whether a promise has rejected due to a thrown error, or whether it
-rejected for a different reason. If you need the functionality of `promise.thrown`
-— for example, if you're running in Node and follow the [Node core team's
-recommendation to shutdown on thrown errors to avoid memory leaks][guide] —
-it's recommended that you not use Holdup in conjunction with other Promise
-libraries.*
+*:warning: Warning: `promise.thrown` is not interoperable with other
+Promises/A+ spec libraries; the Promises/A+ spec doesn't make it possible in a
+general case to tell whether a promise has rejected due to a thrown error, or
+whether it rejected for a different reason. If you need the functionality of
+`promise.thrown` — for example, if you're running in Node and follow the [Node
+core team's recommendation to shutdown on thrown errors to avoid memory
+leaks][guide] — it's recommended that you not use Holdup in conjunction with
+other Promise libraries.*
 
 [guide]: http://nodejs.org/api/domain.html#domain_warning_don_t_ignore_errors
 
