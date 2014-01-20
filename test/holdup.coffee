@@ -268,7 +268,8 @@ describe 'holdup.resolved', ->
     c = new Deferred
     d = new Deferred
     composed = holdup.resolved a, b, c ,d
-    composed.then (fulfilled, rejected) ->
+    composed.then (promises) ->
+      {fulfilled, rejected} = promises
       expect(fulfilled).to.eql [a, b]
       expect(rejected).to.eql [c, d]
       done()
@@ -280,14 +281,16 @@ describe 'holdup.resolved', ->
   it 'works for any number of promises', (done) ->
     a = new Deferred
     oneFulfill = holdup.resolved a
-    oneFulfill.then (fulfilled, rejected) ->
+    oneFulfill.then (promises) ->
+      {fulfilled, rejected} = promises
       expect(fulfilled).to.eql [a]
       expect(rejected).to.eql []
     a.fulfill()
 
     b = new Deferred
     oneReject = holdup.resolved b
-    oneReject.then (fulfilled, rejected) ->
+    oneReject.then (promises) ->
+      {fulfilled, rejected} = promises
       expect(rejected).to.eql [b]
       expect(fulfilled).to.eql []
     b.reject()
@@ -296,7 +299,8 @@ describe 'holdup.resolved', ->
     d = new Deferred
     e = new Deferred
     three = holdup.resolved c, d, e
-    three.then (fulfilled, rejected) ->
+    three.then (promises) ->
+      {fulfilled, rejected} = promises
       expect(fulfilled).to.eql [c, d]
       expect(rejected).to.eql [e]
     c.fulfill()
