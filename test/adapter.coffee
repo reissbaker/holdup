@@ -2,18 +2,18 @@ holdup = require '../index.js'
 {Deferred} = holdup
 
 module.exports = {
-  fulfilled: (value) ->
+  resolved: (value) ->
     deferred = new Deferred
     deferred.fulfill(value)
-    deferred.promise()
+    deferred
   rejected: (reason) ->
     deferred = new Deferred
     deferred.reject(reason)
-    deferred.promise()
+    deferred
   deferred: ->
-    deferred = new Deferred
+    deferred = new Deferred()
     {
-      promise: deferred.promise()
+      promise: deferred
       resolve: (value) -> deferred.fulfill(value)
       reject: (reason) -> deferred.reject(reason)
     }
