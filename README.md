@@ -138,7 +138,7 @@ methods:
 
 ##### promise.then(onFulfilled, onRejected)
 
-Given optional callbacks to be called on promise fulfillment, rejection,
+Given optional callbacks to be called on promise fulfillment or rejection,
 returns a new promise that will adopt the state of the `onFulfilled` callback
 if `promise` fulfills, or will adopt the state of `promise` otherwise.
 
@@ -174,7 +174,7 @@ will be called only if the promise rejects due to a thrown error.
 ##### promise.thrown(ThrownClass, onThrown)
 
 Similar to a call to `promise.thrown(onThrown)`, except that `onThrown` will be
-called on if the given rejection reason is an instance of `ThrownClass`.
+called only if the given rejection reason is an instance of `ThrownClass`.
 
 
 
