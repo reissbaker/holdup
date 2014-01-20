@@ -3,6 +3,8 @@ holdup = require '../index.js'
 {Deferred} = holdup
 
 describe 'holdup.all', ->
+  holdup.resetErrors()
+
   it 'fulfills if no promises are passed', (done) ->
     composed = holdup.all []
     composed.then -> done()

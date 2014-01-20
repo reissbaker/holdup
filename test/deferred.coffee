@@ -1,8 +1,10 @@
 expect = require 'expect.js'
 {Deferred} = require '../lib/deferred'
+holdup = require('../index')
 
 describe 'Deferred', ->
   promise = null
+  holdup.resetErrors()
 
   beforeEach -> promise = new Deferred
 
