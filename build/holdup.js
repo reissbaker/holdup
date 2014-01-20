@@ -118,7 +118,9 @@
     return obj instanceof AsyncError;
   };
 
-  root.handle = function(asyncErr) {
+  root.handle = function(asyncErr, fromThrownHandler) {
+    if(asyncErr.thrown && !fromThrownHandler) return;
+
     if(unhandled.hasOwnProperty(asyncErr.id)) {
       delete unhandled[asyncErr.id];
     }
@@ -133,15 +135,20 @@
     errorHandlers = [];
     thrownHandlers = [];
     scheduled = false;
+    stackVersion++;
   }
 
-  var scheduled = false;
+  var scheduled = false,
+      stackVersion = 0;
   function scheduleException() {
+    var version = stackVersion;
     if(!scheduled) {
       scheduled = true;
       later(function() {
-        scheduled = false;
-        announceExceptions();
+        if(version === stackVersion) {
+          scheduled = false;
+          announceExceptions();
+        }
       });
     }
   }
@@ -155,7 +162,7 @@
           curr.postponed = false;
           scheduleException();
         } else {
-          root.handle(curr);
+          root.handle(curr, true);
           announceException(curr);
         }
       }
@@ -169,7 +176,6 @@
     } else {
       callbacks = errorHandlers;
     }
-    console.log(callbacks, asyncErr);
     for(var i = 0, l = callbacks.length; i < l; i++) {
       callbacks[i](root.unwrap(asyncErr));
     }
@@ -324,9 +330,15 @@
    */
 
 
-  Deferred.prototype.fulfilled = function() { return isFulfilled(this); };
-  Deferred.prototype.rejected = function() { return isRejected(this); };
-  Deferred.prototype.pending = function() { return isPending(this); };
+  Deferred.prototype.fulfilled = function() {
+    return isFulfilled(this);
+  };
+  Deferred.prototype.rejected = function() {
+    return isRejected(this) || isThrown(this);
+  };
+  Deferred.prototype.pending = function() {
+    return isPending(this);
+  };
 
 
 
@@ -371,19 +383,19 @@
 
   function buffer(deferred, child, callback, errback, thrownBack) {
     deferred._fulfilledBuffer.push(function(val) {
-      adoptState(child, val, FULFILLED, callback);
+      adoptState(child, val, FULFILLED, callback, false);
     });
 
     deferred._rejectedBuffer.push(function(val) {
-      adoptState(child, val, REJECTED, errback);
+      adoptState(child, val, REJECTED, errback, false);
     });
 
     deferred._thrownBuffer.push(function(val) {
-      adoptState(child, val, THROWN, errback);
+      adoptState(child, val, THROWN, errback, false);
     });
 
     deferred._thrownBuffer.push(function(val) {
-      adoptState(child, val, THROWN, thrownBack);
+      adoptState(child, val, THROWN, thrownBack, true);
     });
   }
 
@@ -460,11 +472,11 @@
    * Given a deferred child (returned from a `then`), attempts to make the child
    * adopt the correct state.
    */
-  function adoptState(child, val, state, callback) {
+  function adoptState(child, val, state, callback, fromThrownHandler) {
     var childFn = stateFunction(child, state);
 
     if(typeof callback === 'function') {
-      adoptFunctionState(child, callback, val);
+      adoptFunctionState(child, callback, val, fromThrownHandler);
     } else {
       childFn.call(child, val);
     }
@@ -476,14 +488,14 @@
     return deferred.reject;
   }
 
-  function adoptFunctionState(deferred, callback, val) {
+  function adoptFunctionState(deferred, callback, val, fromThrownHandler) {
     var x,
         wrapped = error.isWrapped(val),
         value = wrapped ? error.unwrap(val) : val;
 
     try {
       x = callback(value);
-      if(wrapped) error.handle(val);
+      if(wrapped) error.handle(val, fromThrownHandler);
     } catch(e) {
       deferred.throwError(e);
       return;
@@ -673,7 +685,14 @@
 
   root.make = function(callback) {
     var deferred = new Deferred;
-    callback(bind(deferred.fulfill, deferred), bind(deferred.reject, deferred));
+    try {
+      callback(
+        bind(deferred.fulfill, deferred),
+        bind(deferred.reject, deferred)
+      );
+    } catch(e) {
+      deferred.throwError(e);
+    }
     return deferred.promise();
   };
 
