@@ -107,6 +107,20 @@ describe 'Deferred', ->
     promise.reject()
     promise.reject()
 
+  it 'adopts a thrown state when a then throws', (done) ->
+    e = new Error
+    promise = new Deferred
+    child = promise.then -> throw e
+    promise.fulfill(10)
+    child.thrown (error) ->
+      expect(error).to.be e
+      done()
 
-
-  # ALSO TODO: test multiple arguments passed to a fulfill() or reject()
+  it 'chains thrown errors', (done) ->
+    e = new Error
+    promise = new Deferred
+    chained = promise.then(-> throw e).then().then()
+    promise.fulfill(10)
+    chained.thrown (error) ->
+      expect(error).to.be e
+      done()
