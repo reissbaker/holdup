@@ -145,7 +145,15 @@ the `fulfill` callback, and will call its `then` errback with whatever is
 passed to the `reject` errback.
 
 
-##### holdup.fulfill(fn)
+##### holdup.fulfill(value)
+
+Given a value, returns a promise that will fulfill to the value.
+
+Essentially a degenerate, but convenient form of `holdup.make` for creating
+promises that you know will fulfill to a specific value.
+
+
+##### holdup.fcall(fn)
 
 Given a function that returns a value, returns a promise that will fulfill to
 the result of the given function.
@@ -155,6 +163,14 @@ promises that you know will fulfill to a specific value.
 
 
 ##### holdup.reject(fn)
+
+Given a reason, returns a promise that will reject with the reason.
+
+Essentially a degenerate but convenient form of `holdup.make` for creating
+promises that you know will reject to a specific value.
+
+
+##### holdup.ferr(fn)
 
 Given a function that returns a value, returns a promise that will reject with
 the result of the given function passed as the rejection reason.
@@ -203,11 +219,12 @@ longer in a pending state; i.e., once they've each been rejected or fulfilled.
 The promises don't have to end in the same state: they only have to leave the
 pending state.
 
-The returned promise will call its `then` callback with two arguments: the
-first is an array of all fulfilled promises in the order that they fulfilled,
-and the second is an array of all rejected promises in the order that they
-rejected. If no promises fulfilled, the first argument will be an empty array;
-if no promises rejected, the first argument will similarly be an empty list.
+The returned promise will call its `then` callback with a hash containing two
+keys: `fulfilled` and `rejected`. The `fulfilled` key has an array of all
+fulfilled promises in the order that they fulfilled, and the `rejected` key has
+an array of all rejected promises in the order that they rejected.  If no
+promises fulfilled, the `fulfilled` key will point to an empty array; if no
+promises rejected, the `rejected` key will similarly point to an empty list.
 
 
 ##### holdup.firstFulfilled(promises...)

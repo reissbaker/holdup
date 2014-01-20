@@ -605,18 +605,35 @@ describe 'holdup.make', ->
       done()
 
 
-
 describe 'holdup.fulfill', ->
-  it 'creates a promise that will fulfill to the given value', (done) ->
-    promise = holdup.fulfill -> 10
+  it 'creates a promise that fulfills to the given value', (done) ->
+    promise = holdup.fulfill 10
     promise.then (val) ->
       expect(val).to.be 10
       done()
 
 
+
 describe 'holdup.reject', ->
-  it 'creates a promise that will reject with the given value', (done) ->
-    promise = holdup.reject -> 'because reasons'
+  it 'creates a promise that rejects with the given reason', (done) ->
+    promise = holdup.reject 'because'
+    promise.then null, (reason) ->
+      expect(reason).to.be 'because'
+      done()
+
+
+
+describe 'holdup.fcall', ->
+  it 'creates a promise that will fulfill to the given fn return value', (done) ->
+    promise = holdup.fcall -> 10
+    promise.then (val) ->
+      expect(val).to.be 10
+      done()
+
+
+describe 'holdup.ferr', ->
+  it 'creates a promise that will reject with the given fn return value', (done) ->
+    promise = holdup.ferr -> 'because reasons'
     promise.then null, (err) ->
       expect(err).to.be 'because reasons'
       done()
