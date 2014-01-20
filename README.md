@@ -178,45 +178,6 @@ called only if the given rejection reason is an instance of `ThrownClass`.
 
 
 
-Handling Uncaught Errors
---------------------------------------------------------------------------------
-
-The Promises/A+ spec dictates that errors should never "leak" synchronously out
-of a promise: if you reject or throw an error, you'll never know unless you've
-attached an error handler (with `.then`, or the Holdup-specific `.error` or
-`.thrown` methods).
-
-Since often you'll want to take some action if an error occurs and is never
-caught (for example, report it to your error logger, or gracefully restart your
-server), Holdup provides events that fire when uncaught errors occur.
-
-##### holdup.on('error', fn)
-
-Calls `fn` if an uncaught rejection or thrown error occurs.
-
-
-##### holdup.on('thrown', fn)
-
-Calls `fn` if an uncaught thrown error occurs. Note that "catching" the error
-by handling it with an `onRejected` callback isn't enough: to prevent this from
-firing, you must use a `.thrown` callback. Like `.thrown` and other
-thrown-error-specific code in Holdup, this is not compatible with other promise
-libraries.
-
-
-##### holdup.off(type, fn)
-
-Removes the given callback from listening to the type (`'error'` or `'thrown'`)
-of event.
-
-
-##### holdup.once(type, fn)
-
-Calls `holdup.on(type, fn)`, and then after the callback fires calls
-`holdup.off(type, fn)`.
-
-
-
 Creating Promises
 --------------------------------------------------------------------------------
 
@@ -548,6 +509,45 @@ Given a promise and a Node-style callback, calls the callback with the correct
 `data` and `err` arguments when the promise fulfills or rejects.  Useful for
 creating dual promise/callback APIs, or for using promises internally but
 exposing only a callback API.
+
+
+
+Handling Uncaught Errors
+--------------------------------------------------------------------------------
+
+The Promises/A+ spec dictates that errors should never "leak" synchronously out
+of a promise: if you reject or throw an error, you'll never know unless you've
+attached an error handler (with `.then`, or the Holdup-specific `.error` or
+`.thrown` methods).
+
+Since often you'll want to take some action if an error occurs and is never
+caught (for example, report it to your error logger, or gracefully restart your
+server), Holdup provides events that fire when uncaught errors occur.
+
+##### holdup.on('error', fn)
+
+Calls `fn` if an uncaught rejection or thrown error occurs.
+
+
+##### holdup.on('thrown', fn)
+
+Calls `fn` if an uncaught thrown error occurs. Note that "catching" the error
+by handling it with an `onRejected` callback isn't enough: to prevent this from
+firing, you must use a `.thrown` callback. Like `.thrown` and other
+thrown-error-specific code in Holdup, this is not compatible with other promise
+libraries.
+
+
+##### holdup.off(type, fn)
+
+Removes the given callback from listening to the type (`'error'` or `'thrown'`)
+of event.
+
+
+##### holdup.once(type, fn)
+
+Calls `holdup.on(type, fn)`, and then after the callback fires calls
+`holdup.off(type, fn)`.
 
 
 
