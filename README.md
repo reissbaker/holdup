@@ -130,6 +130,42 @@ your own promises. Keep reading for the full API documentation.
 API
 ================================================================================
 
+Promise Methods
+--------------------------------------------------------------------------------
+
+Promises created by Holdup are Promises/A+ compliant and expose the following
+methods:
+
+##### promise.then(onFulfilled, onRejected)
+
+Given optional callbacks to be called on promise fulfillment, rejection,
+returns a new promise that will adopt the state of the `onFulfilled` callback
+if `promise` fulfills, or will adopt the state of `promise` otherwise.
+
+
+##### promise.error(onRejected)
+
+An alias for `promise.then(null, onRejected)`.
+
+
+##### promise.error(ErrorClass, onRejected)
+
+Similar to a call to `promise.error(onRejected)`, except that `onRejected` will
+only be called if the given rejection reason is an instance of `ErrorClass`.
+
+
+##### promise.thrown(onThrown)
+
+Similar to a call to `promise.then(null, onThrown)`, except that `onThrown`
+will be called only if the promise rejects due to a thrown error.
+
+
+##### promise.thrown(ThrownClass, onThrown)
+
+Similar to a call to `promise.thrown(onThrown)`, except that `onThrown` will be
+called on if the given rejection reason is an instance of `ThrownClass`.
+
+
 
 Creating Promises
 --------------------------------------------------------------------------------

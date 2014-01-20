@@ -124,3 +124,23 @@ describe 'Deferred', ->
     chained.thrown (error) ->
       expect(error).to.be e
       done()
+
+  it 'filters classes for .error', (done) ->
+    class Other
+    class Test
+    e = new Test
+    promise = new Deferred
+    child = promise.then -> throw e
+    promise.fulfill(10)
+    child.thrown Other, -> done()
+    child.thrown Test, -> done()
+
+  it 'filters classes for .thrown', (done) ->
+    class Other
+    class Test
+    e = new Test
+    promise = new Deferred
+    child = promise.then -> throw e
+    promise.fulfill(10)
+    child.thrown Other, -> done()
+    child.thrown Test, -> done()
