@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Holdup</title>
+    <style>
+      .pending {
+        color: yellow;
+      }
+      .error {
+        color: red;
+      }
+      .success {
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Test to make sure the browser build works.</h1>
+    <h2 id=result class=pending>
+      pending...
+    </h2>
+
+    <script src=../build/holdup.js></script>
+    <script>
+
+      function result(klass) {
+        var node = document.getElementById('result'),
+            classList = node.classList;
+        // Idempotent results.
+        if(classList.contains('pending')) {
+          classList.remove('pending');
+          classList.add(klass);
+          node.textContent = klass;
+        }
+      }
+      window.onerror = function() {
+        result('error');
+      };
+
+      var done;
+      var p = holdup.make(function(fulfilled) { done = fulfilled; });
+      p.then(function() {
+        result('success');
+      }, function() {
+        result('error');
+      });
+      done();
+      setTimeout(function() {
+        result('error');
+      }, 100);
+    </script>
+  </body>
+</html>
