@@ -1,188 +1,18 @@
-!function(window) {
-  'use strict';
+!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.holdup=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+var Deferred = _dereq_('./lib/deferred').Deferred,
+    holdup = _dereq_('./lib/holdup'),
+    error = _dereq_('./lib/error');
 
-  var oldHoldup = window.holdup;
+holdup.Deferred = Deferred;
+holdup.on = error.events.on;
+holdup.off = error.events.off;
+holdup.once = error.events.once;
+holdup.resetErrors = error.reset;
 
-  window.holdup = {
-    noConflict: function() {
-      window.holdup = oldHoldup;
-      return this;
-    },
-    _timing: {},
-    _error: {}
-  };
+module.exports = holdup;
 
-}(window);
-!function() {
-  'use strict';
-
-  var root;
-  if(typeof module != 'undefined' && module.exports && typeof require != 'undefined') {
-    root = module.exports;
-  } else {
-    root = window.holdup._timing;
-  }
-
-  function later(callback) {
-    var next = setTimeout;
-
-    if(typeof setImmediate != 'undefined') next = setImmediate;
-    if(typeof process != 'undefined' && process.nextTick) {
-      next = process.nextTick;
-    }
-
-    next(callback, 0);
-  }
-
-  root.later = later;
-}();
-/*
- * Error Handling
- * =============================================================================
- *
- * Tracks errors and rejections as they move through trees of promises.
- * Responsible for detecting when unhandled rejections and thrown errors occur,
- * and emitting events when they do.
- */
-
-!function() {
-  'use strict';
-
-  /*
-   * Setup
-   * ---------------------------------------------------------------------------
-   */
-
-
-  var root, later;
-  if(typeof module != 'undefined' && module.exports && typeof require != 'undefined') {
-    root = module.exports;
-    later = require('./later').later;
-  } else {
-    root = window.holdup._error;
-    later = window.holdup._timing.later;
-  }
-
-  var guid = 0;
-  function AsyncError(err, thrown) {
-    this.error = err;
-    this.thrown = thrown;
-    this.id = guid++;
-    this.postponed = false;
-  }
-
-  var errorHandlers = [],
-      thrownHandlers = [];
-
-  root.events = {
-    on: function(type, callback) {
-      if(type === 'error') errorHandlers.push(callback);
-      else if(type === 'thrown') thrownHandlers.push(callback);
-    },
-    off: function(type, callback) {
-      var callbacks;
-      if(type === 'error') callbacks = errorHandlers;
-      else if(type === 'thrown') callbacks = thrownHandlers;
-      for(var i = 0, l = callbacks.length; i < l; i++) {
-        if(callbacks[i] === callback) {
-          callbacks.splice(i, 1);
-          return true;
-        }
-      }
-      return false;
-    },
-    once: function(type, callback) {
-      var wrapped = function() {
-        callback.apply(undefined, arguments);
-        root.events.off(type, wrapped);
-      };
-      root.events.on(type, wrapped);
-    }
-  };
-
-
-  var unhandled = {};
-
-  root.wrap = function(err, thrown) {
-    var asyncErr = new AsyncError(err, thrown);
-    unhandled[asyncErr.id] = asyncErr;
-    scheduleException();
-    return asyncErr;
-  };
-
-  root.unwrap = function(asyncErr) {
-    return asyncErr.error;
-  };
-
-  root.isWrapped = function(obj) {
-    return obj instanceof AsyncError;
-  };
-
-  root.handle = function(asyncErr, fromThrownHandler) {
-    if(asyncErr.thrown && !fromThrownHandler) return;
-
-    if(unhandled.hasOwnProperty(asyncErr.id)) {
-      delete unhandled[asyncErr.id];
-    }
-  };
-
-  root.postpone = function(asyncErr) {
-    asyncErr.postponed = true;
-  };
-
-  root.reset = function() {
-    unhandled = {};
-    errorHandlers = [];
-    thrownHandlers = [];
-    scheduled = false;
-    stackVersion++;
-  }
-
-  var scheduled = false,
-      stackVersion = 0;
-  function scheduleException() {
-    var version = stackVersion;
-    if(!scheduled) {
-      scheduled = true;
-      later(function() {
-        if(version === stackVersion) {
-          scheduled = false;
-          announceExceptions();
-        }
-      });
-    }
-  }
-
-  function announceExceptions() {
-    var prop, curr;
-    for(prop in unhandled) {
-      if(unhandled.hasOwnProperty(prop)) {
-        curr = unhandled[prop];
-        if(curr.postponed) {
-          curr.postponed = false;
-          scheduleException();
-        } else {
-          root.handle(curr, true);
-          announceException(curr);
-        }
-      }
-    }
-  }
-
-  function announceException(asyncErr) {
-    var callbacks;
-    if(asyncErr.thrown) {
-      callbacks = errorHandlers.concat(thrownHandlers);
-    } else {
-      callbacks = errorHandlers;
-    }
-    for(var i = 0, l = callbacks.length; i < l; i++) {
-      callbacks[i](root.unwrap(asyncErr));
-    }
-  }
-
-}();
-!function() {
+},{"./lib/deferred":2,"./lib/error":3,"./lib/holdup":4}],2:[function(_dereq_,module,exports){
+var process=_dereq_("__browserify_process");!function() {
   'use strict';
 
 
@@ -192,16 +22,7 @@
    */
 
 
-  var root, error, later;
-  if(typeof module != 'undefined' && module.exports && typeof require != 'undefined') {
-    root = module.exports;
-    error = require('./error');
-    later = require('./later').later;
-  } else {
-    root = window.holdup;
-    error = root._error;
-    later = root._timing.later;
-  }
+  var error = _dereq_('./error');
 
   var logError = function() {};
   if(typeof console !== 'undefined' && typeof console.log === 'function') {
@@ -416,7 +237,7 @@
     if(deferred._scheduled) return;
 
     deferred._scheduled = true;
-    later(function() {
+    process.nextTick(function() {
       deferred._scheduled = false;
       executeBuffer(deferred);
     });
@@ -649,20 +470,154 @@
    */
 
 
-  root.Deferred = Deferred;
+  exports.Deferred = Deferred;
 
 }();
+
+},{"./error":3,"__browserify_process":5}],3:[function(_dereq_,module,exports){
+var process=_dereq_("__browserify_process");/*
+ * Error Handling
+ * =============================================================================
+ *
+ * Tracks errors and rejections as they move through trees of promises.
+ * Responsible for detecting when unhandled rejections and thrown errors occur,
+ * and emitting events when they do.
+ */
+
 !function() {
   'use strict';
 
-  var root, Deferred;
-  if(typeof module != 'undefined' && module.exports && typeof require != 'undefined') {
-    root = module.exports;
-    Deferred = require('./deferred').Deferred;
-  } else {
-    root = window.holdup;
-    Deferred = root.Deferred;
+  /*
+   * Setup
+   * ---------------------------------------------------------------------------
+   */
+
+
+  var guid = 0;
+  function AsyncError(err, thrown) {
+    this.error = err;
+    this.thrown = thrown;
+    this.id = guid++;
+    this.postponed = false;
   }
+
+  var errorHandlers = [],
+      thrownHandlers = [];
+
+  exports.events = {
+    on: function(type, callback) {
+      if(type === 'error') errorHandlers.push(callback);
+      else if(type === 'thrown') thrownHandlers.push(callback);
+    },
+    off: function(type, callback) {
+      var callbacks;
+      if(type === 'error') callbacks = errorHandlers;
+      else if(type === 'thrown') callbacks = thrownHandlers;
+      for(var i = 0, l = callbacks.length; i < l; i++) {
+        if(callbacks[i] === callback) {
+          callbacks.splice(i, 1);
+          return true;
+        }
+      }
+      return false;
+    },
+    once: function(type, callback) {
+      var wrapped = function() {
+        callback.apply(undefined, arguments);
+        exports.events.off(type, wrapped);
+      };
+      exports.events.on(type, wrapped);
+    }
+  };
+
+
+  var unhandled = {};
+
+  exports.wrap = function(err, thrown) {
+    var asyncErr = new AsyncError(err, thrown);
+    unhandled[asyncErr.id] = asyncErr;
+    scheduleException();
+    return asyncErr;
+  };
+
+  exports.unwrap = function(asyncErr) {
+    return asyncErr.error;
+  };
+
+  exports.isWrapped = function(obj) {
+    return obj instanceof AsyncError;
+  };
+
+  exports.handle = function(asyncErr, fromThrownHandler) {
+    if(asyncErr.thrown && !fromThrownHandler) return;
+
+    if(unhandled.hasOwnProperty(asyncErr.id)) {
+      delete unhandled[asyncErr.id];
+    }
+  };
+
+  exports.postpone = function(asyncErr) {
+    asyncErr.postponed = true;
+  };
+
+  exports.reset = function() {
+    unhandled = {};
+    errorHandlers = [];
+    thrownHandlers = [];
+    scheduled = false;
+    stackVersion++;
+  }
+
+  var scheduled = false,
+      stackVersion = 0;
+  function scheduleException() {
+    var version = stackVersion;
+    if(!scheduled) {
+      scheduled = true;
+      process.nextTick(function() {
+        if(version === stackVersion) {
+          scheduled = false;
+          announceExceptions();
+        }
+      });
+    }
+  }
+
+  function announceExceptions() {
+    var prop, curr;
+    for(prop in unhandled) {
+      if(unhandled.hasOwnProperty(prop)) {
+        curr = unhandled[prop];
+        if(curr.postponed) {
+          curr.postponed = false;
+          scheduleException();
+        } else {
+          exports.handle(curr, true);
+          announceException(curr);
+        }
+      }
+    }
+  }
+
+  function announceException(asyncErr) {
+    var callbacks;
+    if(asyncErr.thrown) {
+      callbacks = errorHandlers.concat(thrownHandlers);
+    } else {
+      callbacks = errorHandlers;
+    }
+    for(var i = 0, l = callbacks.length; i < l; i++) {
+      callbacks[i](exports.unwrap(asyncErr));
+    }
+  }
+
+}();
+
+},{"__browserify_process":5}],4:[function(_dereq_,module,exports){
+!function() {
+  'use strict';
+
+  var Deferred = _dereq_('./deferred').Deferred;
 
 
   /*
@@ -683,7 +638,7 @@
    * is passed to the `reject` errback.
    */
 
-  root.make = function(callback) {
+  exports.make = function(callback) {
     var deferred = new Deferred;
     try {
       callback(
@@ -706,8 +661,8 @@
    * creating promises that you know will fulfill to a specific value.
    */
 
-  root.fulfill = function(val) {
-    return root.make(function(fulfill) { fulfill(val); });
+  exports.fulfill = function(val) {
+    return exports.make(function(fulfill) { fulfill(val); });
   };
 
 
@@ -721,8 +676,8 @@
    * creating promises that you know will fulfill to a specific value.
    */
 
-  root.fcall = function(fn) {
-    return root.make(function(fulfill) { fulfill(fn()); });
+  exports.fcall = function(fn) {
+    return exports.make(function(fulfill) { fulfill(fn()); });
   };
 
 
@@ -735,8 +690,8 @@
    * promises that you know will reject to a specific value.
    */
 
-  root.reject = function(reason) {
-    return root.make(function(fulfill, reject) { reject(reason); });
+  exports.reject = function(reason) {
+    return exports.make(function(fulfill, reject) { reject(reason); });
   };
 
 
@@ -750,8 +705,8 @@
    * promises that you know will reject to a specific value.
    */
 
-  root.ferr = function(fn) {
-    return root.make(function(fulfill, reject) { reject(fn()); });
+  exports.ferr = function(fn) {
+    return exports.make(function(fulfill, reject) { reject(fn()); });
   };
 
 
@@ -776,10 +731,10 @@
    * first promise to reject.
    */
 
-  root.all = function() {
+  exports.all = function() {
     var composed = compose(extract(arguments), true, false);
 
-    return root.make(function(fulfill, reject) {
+    return exports.make(function(fulfill, reject) {
       composed.promise.then(
         function() { fulfill(composed.fulfilled); },
         function() { reject(composed.rejected[0]); }
@@ -802,10 +757,10 @@
    * `then` errback with the first promise to fulfill.
    */
 
-  root.none = function() {
+  exports.none = function() {
     var composed = compose(extract(arguments), false, true);
 
-    return root.make(function(fulfill, reject) {
+    return exports.make(function(fulfill, reject) {
       composed.promise.then(
         function() { fulfill(composed.rejected); },
         function() { reject(composed.fulfilled[0]); }
@@ -834,10 +789,10 @@
    * empty list.
    */
 
-  root.resolved = root.allSettled = function() {
+  exports.resolved = exports.allSettled = function() {
     var composed = compose(extract(arguments), true, true);
 
-    return root.make(function(fulfill, reject) {
+    return exports.make(function(fulfill, reject) {
       composed.promise.then(function() {
         fulfill({
           fulfilled: composed.fulfilled,
@@ -862,10 +817,10 @@
    * rejected promises in the order that they rejected.
    */
 
-  root.firstFulfilled = root.ff = function() {
-    var promise = root.none(extract(arguments));
+  exports.firstFulfilled = exports.ff = function() {
+    var promise = exports.none(extract(arguments));
 
-    return root.make(function(fulfill, reject) {
+    return exports.make(function(fulfill, reject) {
       promise.then(reject, fulfill);
     });
   };
@@ -885,10 +840,10 @@
    * fulfilled promises in the order that they fulfilled.
    */
 
-  root.firstRejected = root.fr = function() {
-    var promise = root.all(extract(arguments));
+  exports.firstRejected = exports.fr = function() {
+    var promise = exports.all(extract(arguments));
 
-    return root.make(function(fulfill, reject) {
+    return exports.make(function(fulfill, reject) {
       promise.then(reject, fulfill);
     });
   };
@@ -909,10 +864,10 @@
    * rejected promises in the order that they rejected.
    */
 
-  root.lastFulfilled = root.lf = function() {
-    var promise = root.resolved(extract(arguments));
+  exports.lastFulfilled = exports.lf = function() {
+    var promise = exports.resolved(extract(arguments));
 
-    return root.make(function(fulfill, reject) {
+    return exports.make(function(fulfill, reject) {
       promise.then(function(promises) {
         var fulfilled = promises.fulfilled,
             rejected = promises.rejected;
@@ -938,10 +893,10 @@
    * fulfilled promises in the order that they fulfilled.
    */
 
-  root.lastRejected = root.lr = function() {
-    var promise = root.resolved(extract(arguments));
+  exports.lastRejected = exports.lr = function() {
+    var promise = exports.resolved(extract(arguments));
 
-    return root.make(function(fulfill, reject) {
+    return exports.make(function(fulfill, reject) {
       promise.then(function(promises) {
         var fulfilled = promises.fulfilled,
             rejected = promises.rejected;
@@ -964,8 +919,8 @@
    * returned promises callback.
    */
 
-  root.invert = function(promise) {
-    return root.make(function(fulfill, reject) {
+  exports.invert = function(promise) {
+    return exports.make(function(fulfill, reject) {
       promise.then(reject, fulfill);
     });
   };
@@ -997,7 +952,7 @@
    * passed in as `undefined`.
    */
 
-  root.data = root.spread = function() {
+  exports.data = exports.spread = function() {
     var args = argArray(arguments),
         promises = extract(args.slice(0, args.length - 1)),
         composed = collect(promises, false),
@@ -1027,7 +982,7 @@
    * be passed in as `undefined`.
    */
 
-  root.errors = function() {
+  exports.errors = function() {
     var args = argArray(arguments),
         promises = extract(args.slice(0, args.length - 1)),
         composed = collect(promises, true),
@@ -1055,8 +1010,8 @@
    * `then` callback as its first parameter.
    */
 
-  root.wait = function(time) {
-    return root.make(function(fulfill) {
+  exports.wait = function(time) {
+    return exports.make(function(fulfill) {
       setTimeout(function() { fulfill(time); }, time);
     });
   };
@@ -1070,8 +1025,8 @@
    * waits the given time before fulfilling or rejecting.
    */
 
-  root.delay = function(promise, time) {
-    return root.make(function(fulfill, reject) {
+  exports.delay = function(promise, time) {
+    return exports.make(function(fulfill, reject) {
       promise.then(
         function() {
           var args = argArray(arguments, 0);
@@ -1093,8 +1048,8 @@
    * if the given promise fulfills before the time is up and rejects otherwise.
    */
 
-  root.timeout = function(promise, time) {
-    return root.make(function(fulfill, reject) {
+  exports.timeout = function(promise, time) {
+    return exports.make(function(fulfill, reject) {
       setTimeout(function() {
         reject('Error: ' + time + 'ms timeout exceeded.');
       }, time);
@@ -1122,9 +1077,9 @@
    * the async function.
    */
 
-  root.napply = function(scope, fn, args) {
+  exports.napply = function(scope, fn, args) {
     var argCopy = args.slice(0, args.length);
-    return root.make(function(fulfill, reject) {
+    return exports.make(function(fulfill, reject) {
       argCopy.push(function(err, data) {
         if(err) reject(err);
         else fulfill(data);
@@ -1141,8 +1096,8 @@
    * that the scope of `napply` be `null`.
    */
 
-  root.nfapply = function(fn, args) {
-    return root.napply(null, fn, args);
+  exports.nfapply = function(fn, args) {
+    return exports.napply(null, fn, args);
   };
 
 
@@ -1159,9 +1114,9 @@
    * the async function.
    */
 
-  root.ncall = root.wrapFor = function(scope, fn) {
+  exports.ncall = exports.wrapFor = function(scope, fn) {
     var args = argArray(arguments, 2);
-    return root.napply(scope, fn, args);
+    return exports.napply(scope, fn, args);
   };
 
 
@@ -1172,9 +1127,9 @@
    * that the scope of `ncall` be `null`.
    */
 
-  root.nfcall = root.wrap = function(fn) {
+  exports.nfcall = exports.wrap = function(fn) {
     var args = argArray(arguments, 1);
-    return root.napply(null, fn, args);
+    return exports.napply(null, fn, args);
   };
 
 
@@ -1191,8 +1146,8 @@
    * the async function.
    */
 
-  root.npost = function(obj, methodName, args) {
-    return root.napply(obj, obj[methodName], args);
+  exports.npost = function(obj, methodName, args) {
+    return exports.napply(obj, obj[methodName], args);
   };
 
 
@@ -1210,9 +1165,9 @@
    * the async function.
    */
 
-  root.ninvoke = root.nsend = function(obj, methodName) {
+  exports.ninvoke = exports.nsend = function(obj, methodName) {
     var args = argArray(arguments, 2);
-    return root.napply(obj, obj[methodName], args);
+    return exports.napply(obj, obj[methodName], args);
   };
 
 
@@ -1236,11 +1191,11 @@
    *     });
    */
 
-  root.nbind = function(fn, scope) {
+  exports.nbind = function(fn, scope) {
     var boundArgs = argArray(arguments, 2);
     return function() {
       var args = argArray(arguments);
-      return root.napply(scope, fn, boundArgs.concat(args));
+      return exports.napply(scope, fn, boundArgs.concat(args));
     };
   };
 
@@ -1252,9 +1207,9 @@
    * that the scope of `nbind` be `null`.
    */
 
-  root.nfbind = root.denodeify = function(fn) {
+  exports.nfbind = exports.denodeify = function(fn) {
     var args = ([fn, null]).concat(argArray(arguments, 1));
-    return root.nbind.apply(root, args);
+    return exports.nbind.apply(exports, args);
   };
 
 
@@ -1267,7 +1222,7 @@
    * internally but exposing only a callback API.
    */
 
-  root.nodeify = function(promise, callback) {
+  exports.nodeify = function(promise, callback) {
     promise.then(
       function(data) { callback(null, data); },
       function(err) { callback(err); }
@@ -1417,12 +1372,62 @@
     return Array.prototype.slice.call(args, start || 0, end || args.length);
   }
 }();
-!function() {
-  'use strict';
 
-  var holdup = window.holdup;
-  holdup.on = holdup._error.events.on;
-  holdup.off = holdup._error.events.off;
-  holdup.once = holdup._error.events.once;
-  holdup.resetErrors = holdup._error.reset;
-}();
+},{"./deferred":2}],5:[function(_dereq_,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+
+process.nextTick = (function () {
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
+
+    if (canSetImmediate) {
+        return function (f) { return window.setImmediate(f) };
+    }
+
+    if (canPost) {
+        var queue = [];
+        window.addEventListener('message', function (ev) {
+            var source = ev.source;
+            if ((source === window || source === null) && ev.data === 'process-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+
+        return function nextTick(fn) {
+            queue.push(fn);
+            window.postMessage('process-tick', '*');
+        };
+    }
+
+    return function nextTick(fn) {
+        setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+}
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+
+},{}]},{},[1])
+(1)
+});
