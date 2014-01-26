@@ -1,0 +1,22 @@
+{
+  "name": "holdup",
+  "main": "build/holdup.js",
+  "version": "0.5.3",
+  "homepage": "http://reissbaker.github.io/holdup/",
+  "authors": [
+    "Matt Baker <matthew.reiss.baker@gmail.com>"
+  ],
+  "description": "Wrangle CommonJS promises",
+  "keywords": [
+    "promises",
+    "promises-aplus"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
