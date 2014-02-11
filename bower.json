@@ -1,7 +1,7 @@
 {
   "name": "holdup",
   "main": "build/holdup.js",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "homepage": "http://reissbaker.github.io/holdup/",
   "authors": [
     "Matt Baker <matthew.reiss.baker@gmail.com>"
