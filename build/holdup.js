@@ -63,7 +63,6 @@ var process=_dereq_("__browserify_process");!function() {
    * -------------
    */
 
-
   function Deferred() {
     this._fulfilledBuffer = [];
     this._rejectedBuffer = [];
@@ -94,24 +93,28 @@ var process=_dereq_("__browserify_process");!function() {
   };
 
   Deferred.prototype.thrown = function(ThrownClass, thrownBack) {
+    if(!thrownBack) {
+      thrownBack = ThrownClass;
+      ThrownClass = null;
+    }
+    if(!thrownBack) return this.then();
+
     return this.then(null, null, function(e) {
-      if(!thrownBack) {
-        thrownBack = ThrownClass;
-        thrownBack(e);
-        return;
-      }
-      if(e instanceof ThrownClass) thrownBack(e);
+      if(ThrownClass === null) return thrownBack(e);
+      if(e instanceof ThrownClass) return thrownBack(e);
     });
   };
 
   Deferred.prototype.error = function(ErrorClass, errback) {
+    if(!errback) {
+      errback = ErrorClass;
+      ErrorClass = null;
+    }
+    if(!errback) return this.then();
+
     return this.then(null, function(reason) {
-      if(!errback) {
-        errback = ErrorClass;
-        errback(reason);
-        return;
-      }
-      if(reason instanceof ErrorClass) errback(reason);
+      if(ErrorClass === null) return errback(reason);
+      if(reason instanceof ErrorClass) return errback(reason);
     });
   };
 
@@ -299,7 +302,8 @@ var process=_dereq_("__browserify_process");!function() {
     if(typeof callback === 'function') {
       adoptFunctionState(child, callback, val, fromThrownHandler);
     } else {
-      childFn.call(child, val);
+      if(error.isWrapped(val)) error.postpone(val);
+      process.nextTick(function() { childFn.call(child, val); });
     }
   }
 
@@ -566,7 +570,7 @@ var process=_dereq_("__browserify_process");/*
     thrownHandlers = [];
     scheduled = false;
     stackVersion++;
-  }
+  };
 
   var scheduled = false,
       stackVersion = 0;
