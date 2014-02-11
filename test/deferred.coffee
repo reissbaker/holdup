@@ -146,3 +146,34 @@ describe 'Deferred', ->
     promise.fulfill(10)
     child.thrown Other, -> done()
     child.thrown Test, -> done()
+
+  it 'correctly chains on .error', (done) ->
+    e = new Error
+    promise = new Deferred
+    chained = promise.then(-> throw e).error().then().then()
+    promise.fulfill(10)
+    chained.error (error) ->
+      expect(error).to.be e
+      done()
+
+  it 'chains through on the .then errback if a rejection is returned', (done) ->
+    e = new Error
+    promise = new Deferred
+    failed = new Deferred
+    failed.reject(10)
+    chained = promise.then(-> throw e).then(null, -> failed)
+    promise.fulfill(10)
+    chained.then null, (error) ->
+      expect(error).to.be 10
+      done()
+
+  it 'chains errors through on .error if a rejection is returned', (done) ->
+    e = new Error
+    promise = new Deferred
+    failed = new Deferred
+    failed.reject(10)
+    chained = promise.then(-> throw e).error(-> failed)
+    promise.fulfill(10)
+    chained.error (error) ->
+      expect(error).to.be 10
+      done()
