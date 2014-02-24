@@ -26,13 +26,14 @@ describe 'holdup.all', ->
     composed.then null, -> done()
     initial.reject()
 
-  it 'returns the rejected promise', (done) ->
+  it 'returns the rejected error', (done) ->
     initial = new Deferred
     composed = holdup.all initial
-    composed.then null, (rejected) ->
-      expect(rejected).to.be initial
+    err = new Error
+    composed.then null, (e) ->
+      expect(e).to.be err
       done()
-    initial.reject()
+    initial.reject(err)
 
   it 'waits for multiple promises to fulfill', (done) ->
     lastFired = false
@@ -53,25 +54,25 @@ describe 'holdup.all', ->
     composed.then null, -> done()
     b.reject()
 
-  it 'returns the fulfilled promises', (done) ->
+  it 'returns the fulfilled data', (done) ->
     a = new Deferred
     b = new Deferred
     composed = holdup.all a, b
     composed.then (fulfilled) ->
-      expect(fulfilled).to.eql [a, b]
+      expect(fulfilled).to.eql [10, 11]
       done()
-    a.fulfill()
-    b.fulfill()
+    a.fulfill(10)
+    b.fulfill(11)
 
-  it 'returns the first rejected promise', (done) ->
+  it 'returns the first rejected error', (done) ->
     a = new Deferred
     b = new Deferred
     composed = holdup.all a, b
-    composed.then null, (rejected) ->
-      expect(rejected).to.be b
+    composed.then null, (err) ->
+      expect(err).to.be 10
       done()
-    b.reject()
-    a.reject()
+    b.reject(10)
+    a.reject(11)
 
   it 'works for any number of promises', (done) ->
     a = new Deferred
@@ -126,23 +127,33 @@ describe 'holdup.none', ->
     composed.then null, -> done()
     initial.fulfill()
 
-  it 'returns the rejected promises when fulfilled', (done) ->
+  it 'returns the rejected error when fulfilled', (done) ->
     a = new Deferred
     b = new Deferred
     composed = holdup.none a, b
-    composed.then (rejected) ->
-      expect(rejected).to.eql [a, b]
+    composed.then (errs) ->
+      expect(errs).to.eql [10, 11]
       done()
-    a.reject()
-    b.reject()
+    a.reject(10)
+    b.reject(11)
 
-  it 'returns the fulfilled promise when rejecting', (done) ->
+  it 'returns the errors in the order that the original promises were passed', (done) ->
+    a = new Deferred
+    b = new Deferred
+    composed = holdup.none b, a
+    composed.then (errs) ->
+      expect(errs).to.eql [11, 10]
+      done()
+    a.reject(10)
+    b.reject(11)
+
+  it 'returns the fulfilled data when rejecting', (done) ->
     initial = new Deferred
     composed = holdup.none initial
-    composed.then null, (fulfilled) ->
-      expect(fulfilled).to.be initial
+    composed.then null, (data) ->
+      expect(data).to.be 10
       done()
-    initial.fulfill()
+    initial.fulfill(10)
 
   it 'waits for multiple promises to reject', (done) ->
     lastFired = false
@@ -156,22 +167,22 @@ describe 'holdup.none', ->
     a.reject()
     b.reject()
 
-  it 'immediatelys reject if any fulfill', (done) ->
+  it 'immediately rejects if any fulfill', (done) ->
     a = new Deferred
     b = new Deferred
     composed = holdup.none a, b
     composed.then null, -> done()
     b.fulfill()
 
-  it 'returns the first fulfilled promise', (done) ->
+  it 'returns the first fulfilled data', (done) ->
     a = new Deferred
     b = new Deferred
     composed = holdup.none a, b
-    composed.then null, (fulfilled) ->
-      expect(fulfilled).to.be b
+    composed.then null, (data) ->
+      expect(data).to.be 10
       done()
-    b.fulfill()
-    a.fulfill()
+    b.fulfill(10)
+    a.fulfill(11)
 
   it 'works for any number of promises', (done) ->
     a = new Deferred
@@ -186,7 +197,7 @@ describe 'holdup.none', ->
     c.reject()
     d.reject()
 
-    holdup.all(one, three).then -> done()
+    holdup.none(one, three).error -> done()
 
   it 'works for promises that are already fulfilled', (done) ->
     a = new Deferred
@@ -203,16 +214,16 @@ describe 'holdup.none', ->
 
 
 
-describe 'holdup.resolved', ->
+describe 'holdup.settled', ->
   it 'fulfills if no promises are passed', (done) ->
-    composed = holdup.resolved []
+    composed = holdup.settled []
     composed.then -> done()
 
   it 'waits for one promise to fulfill', (done) ->
     fired = false
     initial = new Deferred
     initial.then -> fired = true
-    composed = holdup.resolved initial
+    composed = holdup.settled initial
     composed.then ->
       expect(fired).to.be.ok()
       done()
@@ -222,7 +233,7 @@ describe 'holdup.resolved', ->
     fired = false
     initial = new Deferred
     initial.then null, -> fired = true
-    composed = holdup.resolved initial
+    composed = holdup.settled initial
     composed.then ->
       expect(fired).to.be.ok()
       done()
@@ -233,7 +244,7 @@ describe 'holdup.resolved', ->
     a = new Deferred
     b = new Deferred
     b.then -> lastFired = true
-    composed = holdup.resolved a, b
+    composed = holdup.settled a, b
     composed.then ->
       expect(lastFired).to.be.ok()
       done()
@@ -245,7 +256,7 @@ describe 'holdup.resolved', ->
     a = new Deferred
     b = new Deferred
     b.then null, -> lastFired = true
-    composed = holdup.resolved a, b
+    composed = holdup.settled a, b
     composed.then ->
       expect(lastFired).to.be.ok()
       done()
@@ -257,54 +268,62 @@ describe 'holdup.resolved', ->
     a = new Deferred
     b = new Deferred
     b.then -> lastFired = true
-    composed = holdup.resolved a, b
+    composed = holdup.settled a, b
     composed.then ->
       expect(lastFired).to.be.ok()
       done()
     a.reject()
     b.fulfill()
 
-  it 'passes the lists of fulfilled and rejected promises', (done) ->
+  it 'passes the lists of fulfilled and rejected inspections', (done) ->
     a = new Deferred
     b = new Deferred
     c = new Deferred
     d = new Deferred
-    composed = holdup.resolved a, b, c ,d
-    composed.then (promises) ->
-      {fulfilled, rejected} = promises
-      expect(fulfilled).to.eql [a, b]
-      expect(rejected).to.eql [c, d]
+    composed = holdup.settled a, b, c ,d
+    composed.then (inspections) ->
+      expect(inspections[0].value()).to.be a.inspect().value()
+      expect(inspections[1].value()).to.be b.inspect().value()
+      expect(inspections[2].error()).to.be c.inspect().error()
+      expect(inspections[3].error()).to.be d.inspect().error()
       done()
-    a.fulfill()
-    c.reject()
-    b.fulfill()
-    d.reject()
+    a.fulfill(10)
+    b.fulfill(12)
+    c.reject(11)
+    d.reject(13)
+
+  it 'passes the inspections in the order the promises were passed in', (done) ->
+    a = new Deferred
+    b = new Deferred
+    composed = holdup.settled(b,a)
+    composed.then (inspections) ->
+      expect(inspections[0].value()).to.be b.inspect().value()
+      expect(inspections[1].value()).to.be a.inspect().value()
+      done()
+    a.fulfill(5)
+    b.fulfill(10)
 
   it 'works for any number of promises', (done) ->
     a = new Deferred
-    oneFulfill = holdup.resolved a
-    oneFulfill.then (promises) ->
-      {fulfilled, rejected} = promises
-      expect(fulfilled).to.eql [a]
-      expect(rejected).to.eql []
+    oneFulfill = holdup.settled a
+    oneFulfill.then (inspections) ->
+      expect(inspections[0].value()).to.be a.inspect().value()
     a.fulfill()
 
     b = new Deferred
-    oneReject = holdup.resolved b
-    oneReject.then (promises) ->
-      {fulfilled, rejected} = promises
-      expect(rejected).to.eql [b]
-      expect(fulfilled).to.eql []
+    oneReject = holdup.settled b
+    oneReject.then (inspections) ->
+      expect(inspections[0].error()).to.be b.inspect().value()
     b.reject()
 
     c = new Deferred
     d = new Deferred
     e = new Deferred
-    three = holdup.resolved c, d, e
-    three.then (promises) ->
-      {fulfilled, rejected} = promises
-      expect(fulfilled).to.eql [c, d]
-      expect(rejected).to.eql [e]
+    three = holdup.settled c, d, e
+    three.then (inspections) ->
+      expect(inspections[0].value()).to.be c.inspect().value()
+      expect(inspections[1].value()).to.be d.inspect().value()
+      expect(inspections[2].error()).to.be e.inspect().error()
     c.fulfill()
     d.fulfill()
     e.reject()
@@ -316,36 +335,36 @@ describe 'holdup.resolved', ->
     b = new Deferred
     a.fulfill()
     b.fulfill()
-    holdup.resolved(a, b).then -> done()
+    holdup.settled(a, b).then -> done()
 
   it 'works for promises that are already rejected', (done) ->
     a = new Deferred
     b = new Deferred
     a.reject()
     b.reject()
-    holdup.resolved(a, b).then -> done()
+    holdup.settled(a, b).then -> done()
 
   it 'works for promises that are a mixture pre-fulfilled and pre-rejected', (done) ->
     a = new Deferred
     b = new Deferred
     a.reject()
     b.fulfill()
-    holdup.resolved(a, b).then -> done()
+    holdup.settled(a, b).then -> done()
 
 
 
-describe 'holdup.firstFulfilled', ->
+describe 'holdup.firstValue', ->
   it 'fulfills as soon as any have fulfilled', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.firstFulfilled a, b
+    composed = holdup.firstValue a, b
     composed.then -> done()
     a.fulfill()
 
   it 'fulfills even if one rejects', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.firstFulfilled a, b
+    composed = holdup.firstValue a, b
     composed.then -> done()
     a.reject()
     b.fulfill()
@@ -353,59 +372,59 @@ describe 'holdup.firstFulfilled', ->
   it 'rejects if all reject', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.firstFulfilled a, b
+    composed = holdup.firstValue a, b
     composed.then null, -> done()
     a.reject()
     b.reject()
 
-  it 'passes the first to fulfill to its callback', (done) ->
+  it 'passes the first value to fulfill to its callback', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.firstFulfilled a, b
+    composed = holdup.firstValue a, b
     composed.then (winner) ->
-      expect(winner).to.be a
+      expect(winner).to.be a.inspect().value()
       done()
-    a.fulfill()
+    a.fulfill(10)
 
-  it 'passes all fulfilled promises to its errback', (done) ->
+  it 'passes all errors to its errback', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.firstFulfilled a, b
-    composed.then null, (rejected) ->
-      expect(rejected).to.eql [a, b]
+    composed = holdup.firstValue a, b
+    composed.then null, (errs) ->
+      expect(errs).to.eql [a.inspect().error(), b.inspect().error()]
       done()
     a.reject()
     b.reject()
 
   it 'works with any number of promises', (done) ->
     a = new Deferred
-    one = holdup.firstFulfilled a
-    one.then (first) -> expect(first).to.be a
+    one = holdup.firstValue a
+    one.then (first) -> expect(first).to.be a.inspect().value()
     a.fulfill()
 
     b = new Deferred
     c = new Deferred
     d = new Deferred
-    three = holdup.firstFulfilled b, c, d
-    three.then (first) -> expect(first).to.be b
+    three = holdup.firstValue b, c, d
+    three.then (first) -> expect(first).to.be b.inspect().value()
     b.fulfill()
 
     holdup.all(one, three).then -> done()
 
 
 
-describe 'holdup.firstRejected', ->
+describe 'holdup.firstError', ->
   it 'fulfills as soon as any have rejected', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.firstRejected a, b
+    composed = holdup.firstError a, b
     composed.then -> done()
     a.reject()
 
   it 'fulfills even if one fulfills', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.firstRejected a, b
+    composed = holdup.firstError a, b
     composed.then -> done()
     b.fulfill()
     a.reject()
@@ -413,54 +432,54 @@ describe 'holdup.firstRejected', ->
   it 'rejects if all fulfill', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.firstRejected a, b
+    composed = holdup.firstError a, b
     composed.then null, -> done()
     a.fulfill()
     b.fulfill()
 
-  it 'passes the first to reject to its callback', (done) ->
+  it 'passes the first error to its callback', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.firstRejected a, b
+    composed = holdup.firstError a, b
     composed.then (winner) ->
-      expect(winner).to.be a
+      expect(winner).to.be a.inspect().error()
       done()
     a.reject()
 
-  it 'passes all fulfilled promises to its errback', (done) ->
+  it 'passes all fulfilled values to its errback', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.firstRejected a, b
+    composed = holdup.firstError a, b
     composed.then null, (fulfilled) ->
-      expect(fulfilled).to.eql [a, b]
+      expect(fulfilled).to.eql [a.inspect().value(), b.inspect().value()]
       done()
     a.fulfill()
     b.fulfill()
 
   it 'works with any number of promises', (done) ->
     a = new Deferred
-    one = holdup.firstRejected a
-    one.then (first) -> expect(first).to.be a
+    one = holdup.firstError a
+    one.then (first) -> expect(first).to.be a.inspect().error()
     a.reject()
 
     b = new Deferred
     c = new Deferred
     d = new Deferred
-    three = holdup.firstRejected b, c, d
-    three.then (first) -> expect(first).to.be b
+    three = holdup.firstError b, c, d
+    three.then (first) -> expect(first).to.be b.inspect().error()
     b.reject()
 
     holdup.all(one, three).then -> done()
 
 
 
-describe 'holdup.lastFulfilled', ->
-  it 'passes the last fulfilled promise to its callback', (done) ->
+describe 'holdup.lastValue', ->
+  it 'passes the last fulfilled value to its callback', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.lastFulfilled a, b
+    composed = holdup.lastValue a, b
     composed.then (last) ->
-      expect(last).to.be b
+      expect(last).to.be b.inspect().value()
       done()
     a.fulfill()
     b.fulfill()
@@ -468,17 +487,17 @@ describe 'holdup.lastFulfilled', ->
   it 'rejects if all reject', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.lastFulfilled a, b
+    composed = holdup.lastValue a, b
     composed.then null, -> done()
     a.reject()
     b.reject()
 
-  it 'passes all rejected promises to its errback', (done) ->
+  it 'passes all errors to its errback', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.lastFulfilled a, b
-    composed.then null, (rejected) ->
-      expect(rejected).to.eql [a, b]
+    composed = holdup.lastValue a, b
+    composed.then null, (errs) ->
+      expect(errs).to.eql [a.inspect().error(), b.inspect().error()]
       done()
     a.reject()
     b.reject()
@@ -488,12 +507,12 @@ describe 'holdup.lastFulfilled', ->
     b = new Deferred
     c = new Deferred
     d = new Deferred
-    first = holdup.lastFulfilled a, b
-    first.then (last) -> expect(last).to.be a
+    first = holdup.lastValue a, b
+    first.then (last) -> expect(last).to.be a.inspect().value()
     a.fulfill()
     b.reject()
-    second = holdup.lastFulfilled c, d
-    second.then (last) -> expect(last).to.be d
+    second = holdup.lastValue c, d
+    second.then (last) -> expect(last).to.be d.inspect().value()
     c.reject()
     d.fulfill()
 
@@ -501,15 +520,15 @@ describe 'holdup.lastFulfilled', ->
 
   it 'works with any number of promises', (done) ->
     a = new Deferred
-    one = holdup.lastFulfilled a
-    one.then (last) -> expect(last).to.be a
+    one = holdup.lastValue a
+    one.then (last) -> expect(last).to.be a.inspect().value()
     a.fulfill()
 
     b = new Deferred
     c = new Deferred
     d = new Deferred
-    three = holdup.lastFulfilled b, c, d
-    three.then (last) -> expect(last).to.be d
+    three = holdup.lastValue b, c, d
+    three.then (last) -> expect(last).to.be d.inspect().value()
     b.fulfill()
     c.fulfill()
     d.fulfill()
@@ -518,13 +537,13 @@ describe 'holdup.lastFulfilled', ->
 
 
 
-describe 'holdup.lastRejected', ->
-  it 'passes the last rejected promise to its callback', (done) ->
+describe 'holdup.lastError', ->
+  it 'passes the last error to occur to its callback', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.lastRejected a, b
+    composed = holdup.lastError a, b
     composed.then (last) ->
-      expect(last).to.be b
+      expect(last).to.be b.inspect().error()
       done()
     a.reject()
     b.reject()
@@ -532,17 +551,17 @@ describe 'holdup.lastRejected', ->
   it 'rejects if all fulfill', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.lastRejected a, b
+    composed = holdup.lastError a, b
     composed.then null, -> done()
     a.fulfill()
     b.fulfill()
 
-  it 'passes fulfilled callbacks to its errback', (done) ->
+  it 'passes fulfilled values to its errback', (done) ->
     a = new Deferred
     b = new Deferred
-    composed = holdup.lastRejected a, b
+    composed = holdup.lastError a, b
     composed.then null, (fulfilled) ->
-      expect(fulfilled).to.eql [a, b]
+      expect(fulfilled).to.eql [a.inspect().value(), b.inspect().value()]
       done()
     a.fulfill()
     b.fulfill()
@@ -551,16 +570,16 @@ describe 'holdup.lastRejected', ->
     # If the promise is the first to reject
     a = new Deferred
     b = new Deferred
-    first = holdup.lastRejected a, b
-    first.then (last) -> expect(last).to.be a
+    first = holdup.lastError a, b
+    first.then (last) -> expect(last).to.be a.inspect().error()
     a.reject()
     b.fulfill()
 
     # If the promise isn't the first to reject
     c = new Deferred
     d = new Deferred
-    second = holdup.lastRejected c, d
-    second.then (last) -> expect(last).to.be d
+    second = holdup.lastError c, d
+    second.then (last) -> expect(last).to.be d.inspect().error()
     c.fulfill()
     d.reject()
 
@@ -568,15 +587,15 @@ describe 'holdup.lastRejected', ->
 
   it 'works with any number of promises', (done) ->
     a = new Deferred
-    one = holdup.lastRejected a
-    one.then (last) -> expect(last).to.be a
+    one = holdup.lastError a
+    one.then (last) -> expect(last).to.be a.inspect().error()
     a.reject()
 
     b = new Deferred
     c = new Deferred
     d = new Deferred
-    three = holdup.lastRejected b, c, d
-    three.then (last) -> expect(last).to.be d
+    three = holdup.lastError b, c, d
+    three.then (last) -> expect(last).to.be d.inspect().error()
     b.reject()
     c.reject()
     d.reject()
