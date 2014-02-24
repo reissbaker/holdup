@@ -825,6 +825,30 @@ describe 'holdup.timeout', ->
 
 
 
+describe 'holdup.spreadValues', ->
+  it 'calls the callback by applying the promise\'s fulfilled value', (done) ->
+    a = new Deferred
+    a.fulfill([1, 2, 3])
+    holdup.spreadValues a, (one, two, three) ->
+      expect(one).to.be 1
+      expect(two).to.be 2
+      expect(three).to.be 3
+      done()
+
+
+
+describe 'holdup.spreadErrors', ->
+  it 'calls the callback by applying the promise\'s rejection error', (done) ->
+    a = new Deferred
+    a.reject([1, 2, 3])
+    holdup.spreadErrors a, (one, two, three) ->
+      expect(one).to.be 1
+      expect(two).to.be 2
+      expect(three).to.be 3
+      done()
+
+
+
 describe 'holdup.data', ->
   it 'collects all the data from fulfilled promises', (done) ->
     a = new Deferred
