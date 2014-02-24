@@ -712,7 +712,7 @@ exports.ferr = function(fn) {
 
 
 /*
- * ### holdup.allPromisesOrdered
+ * ### holdup.all
  *
  * Takes an arg list, array, array of arrays, arg lists of arrays... etc
  * containing promises.
@@ -720,28 +720,21 @@ exports.ferr = function(fn) {
  * Returns a promise that will be fulfilled if all the promises fulfill, and
  * will reject as soon as any of the promises reject.
  *
- * It will call its `then` callback with the array of all fulfilled promises,
- * in the order that they fulfilled. It will call its `then` errback with the
- * first promise to reject.
+ * It will call its `then` callback with the array of all fulfilled values,
+ * in the order that their respective promises were passed in. It will call its
+ * `then` errback with the first promise to reject.
  */
 
-exports.allPromisesOrdered = function() {
-  var composed = compose(extract(arguments), true, false);
-
+exports.all = function() {
+  var promises = extract(arguments),
+      composed = compose(promises, true, false);
   return exports.make(function(fulfill, reject) {
     composed.promise.then(
-      function() { fulfill(composed.fulfilled); },
-      function() { reject(composed.rejected[0]); }
+      function() {
+        collect(promises, false).then(function(data) { fulfill(data) });
+      },
+      function() { composed.rejected[0].error(function(e) { reject(e); }); }
     );
-  });
-};
-
-exports.all = function() {
-  var promises = extract(arguments);
-  return exports.allPromisesOrdered(promises).then(function() {
-    return collect(promises, false);
-  }, function(errP) {
-    return errP.error(function(e) { return exports.reject(e); });
   });
 };
 
@@ -876,10 +869,13 @@ exports.firstValue = exports.race = function() {
  */
 
 exports.firstRejected = exports.fr = function() {
-  var promise = exports.allPromisesOrdered(extract(arguments));
+  var composed = compose(extract(arguments), true, false);
 
   return exports.make(function(fulfill, reject) {
-    promise.then(reject, fulfill);
+    composed.promise.then(
+      function() { reject(composed.fulfilled); },
+      function() { fulfill(composed.rejected[0]); }
+    );
   });
 };
 
