@@ -609,6 +609,15 @@ function announceException(asyncErr) {
 
 }).call(this,_dereq_("/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
 },{"/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":7}],4:[function(_dereq_,module,exports){
+/*
+ * TODO: remove all references to .inspect -- it's not cross-compatible. Or,
+ * figure out how to wrap non-holdup promises in holdup promises.
+ *
+ * TODO: write a version of collect() that works more like compose() -- it
+ * collects potentially only values/errors (or both), and its promise only fires
+ * if all match.
+ */
+
 'use strict';
 
 var Deferred = _dereq_('./deferred').Deferred;
@@ -855,7 +864,7 @@ exports.firstValue = exports.race = function() {
 
 
 /*
- * ### holdup.firstRejected
+ * ### holdup.firstError
  *
  * Takes an arg list, array, array of arrays, arg list of arrays... etc
  * containing promises.
@@ -863,30 +872,22 @@ exports.firstValue = exports.race = function() {
  * Returns a promise that will be fulfilled as soon as the first of the
  * given promises rejects, and will reject if none of the promises reject.
  *
- * The returned promise will call its `then` callback with the first
- * rejected promise, and will call its `then` errback with the array of all
- * fulfilled promises in the order that they fulfilled.
+ * The returned promise will call its `then` callback with the first rejection
+ * reason, and will call its `then` errback with the array of all fulfilled
+ * values in the order that their respective promises were passed in.
  */
 
-exports.firstRejected = exports.fr = function() {
-  var composed = compose(extract(arguments), true, false);
+exports.firstError = function() {
+  var promises = extract(arguments),
+      composed = compose(promises, true, false);
 
   return exports.make(function(fulfill, reject) {
     composed.promise.then(
-      function() { reject(composed.fulfilled); },
-      function() { fulfill(composed.rejected[0]); }
+      function() {
+        collect(promises, false).then(function(data) { reject(data); });
+      },
+      function() { fulfill(composed.rejected[0].inspect().error()); }
     );
-  });
-};
-
-exports.firstError = function() {
-  var promises = extract(arguments);
-  return exports.fr(promises).then(function(first) {
-    return first.inspect().error();
-  }, function() {
-    return collect(promises, false).then(function(data) {
-      return exports.reject(data);
-    });
   });
 };
 
