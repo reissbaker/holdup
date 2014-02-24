@@ -177,3 +177,62 @@ describe 'Deferred', ->
     chained.error (error) ->
       expect(error).to.be 10
       done()
+
+  describe '.inspect', ->
+    describe '.value', ->
+      it 'returns an object that contains the synchronous value of the deferred', ->
+        promise.fulfill(10)
+        inspection = promise.inspect()
+        expect(inspection.value()).to.be 10
+      it 'throws if there was an error', (done) ->
+        promise.reject(1)
+        try
+          promise.inspect().value()
+        catch e
+          done()
+
+    describe '.error', ->
+      it 'contains the error if the promise rejected', ->
+        promise.reject(10)
+        inspection = promise.inspect()
+        expect(inspection.error()).to.be 10
+      it 'throws if the promise fulfilled', (done) ->
+        promise.fulfill(1)
+        try
+          promise.inspect().error()
+        catch e
+          done()
+
+    describe '.isFulfilled', ->
+      it 'returns true if the deferred fulfilled', ->
+        promise.fulfill(10)
+        expect(promise.inspect().isFulfilled()).to.be true
+      it 'returns false if the deferred rejected', ->
+        promise.reject(10)
+        expect(promise.inspect().isFulfilled()).to.be false
+      it 'returns false if the deferred is still pending', ->
+        expect(promise.inspect().isFulfilled()).to.be false
+
+    describe '.isRejected', ->
+      it 'returns true if the deferred rejected', ->
+        promise.reject(10)
+        expect(promise.inspect().isRejected()).to.be true
+      it 'returns false if the deferred fulfilled', ->
+        promise.fulfill(10)
+        expect(promise.inspect().isRejected()).to.be false
+      it 'returns false if the deferred is still pending', ->
+        expect(promise.inspect().isFulfilled()).to.be false
+
+    describe '.isThrown', ->
+      it 'returns true if the deferred threw', (done) ->
+        child = promise.then -> throw new Error
+        promise.fulfill(10)
+        child.thrown ->
+          expect(child.inspect().isThrown()).to.be true
+          done()
+      it 'returns false if the deferred fulfilled', ->
+        promise.fulfill(10)
+        expect(promise.inspect().isThrown()).to.be false
+      it 'returns false if the deferred is still pending', ->
+        child = promise.then ->
+        expect(child.inspect().isThrown()).to.be false
