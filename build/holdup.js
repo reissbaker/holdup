@@ -327,7 +327,7 @@ function resolve(deferred, x) {
 
   // 1. If promise and x refer to the same object, reject promise with a
   // TypeError as the reason.
-  shortCircuit(deferred, x);
+  if(shortCircuit(deferred, x)) return;
 
   // 2. If x is a promise, adopt its state.
   // 3. Otherwise, if x is an object or function,
@@ -740,7 +740,7 @@ exports.all = function() {
   return exports.make(function(fulfill, reject) {
     composed.promise.then(
       function() {
-        collect(promises, false).then(function(data) { fulfill(data) });
+        collect(promises, false).then(function(data) { fulfill(data); });
       },
       function() { composed.rejected[0].error(function(e) { reject(e); }); }
     );
@@ -860,7 +860,7 @@ exports.firstValue = exports.race = function() {
       return exports.reject(errors);
     });
   });
-}
+};
 
 
 /*
@@ -1467,11 +1467,10 @@ Inspection.prototype.error = function() {
   var val = this._d._value;
   if(error.isWrapped(val)) return error.unwrap(val);
   return val;
-}
+};
 
 Inspection.prototype.isThrown = function() {
   return inState(this._d, state.THROWN);
-  return this._d._value;
 };
 
 Inspection.prototype.isRejected = function() {
