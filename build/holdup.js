@@ -470,7 +470,7 @@ function runFunctions(fns, value) {
 exports.Deferred = Deferred;
 
 }).call(this,_dereq_("/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./error":3,"./inspection":5,"./state":6,"/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":7}],3:[function(_dereq_,module,exports){
+},{"./error":3,"./inspection":5,"./state":7,"/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":8}],3:[function(_dereq_,module,exports){
 (function (process){
 /*
 * Error Handling
@@ -608,7 +608,7 @@ function announceException(asyncErr) {
 }
 
 }).call(this,_dereq_("/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":7}],4:[function(_dereq_,module,exports){
+},{"/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":8}],4:[function(_dereq_,module,exports){
 /*
  * TODO: remove all references to .inspect -- it's not cross-compatible. Or,
  * figure out how to wrap non-holdup promises in holdup promises.
@@ -1421,43 +1421,62 @@ function argArray(args, start, end) {
 'use strict';
 
 var state = _dereq_('./state'),
+    stateContainer = _dereq_('./state-container'),
     error = _dereq_('./error');
 
-function Inspection(deferred) {
-  this._d = deferred;
+function Inspection(state, value) {
+  this._s = stateContainer(state, value);
 }
 
 Inspection.prototype.value = function() {
   if(!this.isFulfilled()) throw new TypeError;
-  return this._d._value;
+  return this._s.value();
 };
 
 Inspection.prototype.error = function() {
   if(!this.isRejected()) throw new TypeError;
-  var val = this._d._value;
+  var val = this._s.value();
   if(error.isWrapped(val)) return error.unwrap(val);
   return val;
 };
 
 Inspection.prototype.isThrown = function() {
-  return inState(this._d, state.THROWN);
+  return this._s.state() === state.THROWN;
 };
 
 Inspection.prototype.isRejected = function() {
-  return inState(this._d, state.REJECTED) || this.isThrown();
+  return this._s.state() === state.REJECTED || this.isThrown();
 };
 
 Inspection.prototype.isFulfilled = function() {
-  return inState(this._d, state.FULFILLED);
+  return this._s.state() === state.FULFILLED;
 };
-
-function inState(deferred, state) {
-  return deferred._state === state;
-}
 
 module.exports = Inspection;
 
-},{"./error":3,"./state":6}],6:[function(_dereq_,module,exports){
+},{"./error":3,"./state":7,"./state-container":6}],6:[function(_dereq_,module,exports){
+'use strict';
+
+function DeferredStateContainer(deferred) {
+  this.d = deferred;
+}
+DeferredStateContainer.prototype.state = function() { return this.d._state; };
+DeferredStateContainer.prototype.value = function() { return this.d._value; };
+
+
+function SyncStateContainer(state, value) {
+  this.state = state;
+  this.value = value;
+}
+SyncStateContainer.prototype.state = function() { return this.state; };
+SyncStateContainer.prototype.value = function() { return this.value; };
+
+module.exports = function(state, value) {
+  if(typeof state === 'number') return new SyncStateContainer(state, value);
+  return new DeferredStateContainer(state);
+};
+
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 // Deferred state constants.
@@ -1466,7 +1485,7 @@ exports.FULFILLED = 1;
 exports.PENDING = 2;
 exports.THROWN = 3;
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
