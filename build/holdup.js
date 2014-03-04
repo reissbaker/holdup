@@ -852,14 +852,7 @@ exports.firstFulfilled = exports.ff = function() {
 
 exports.firstValue = exports.race = function() {
   var promises = extract(arguments);
-
-  return exports.ff(promises).then(function(first) {
-    return first.inspect().value();
-  }, function() {
-    return collect(promises, true).then(function(errors) {
-      return exports.reject(errors);
-    });
-  });
+  return exports.invert(exports.none(promises));
 };
 
 
@@ -878,17 +871,9 @@ exports.firstValue = exports.race = function() {
  */
 
 exports.firstError = function() {
-  var promises = extract(arguments),
-      composed = compose(promises, true, false);
+  var promises = extract(arguments);
 
-  return exports.make(function(fulfill, reject) {
-    composed.promise.then(
-      function() {
-        collect(promises, false).then(function(data) { reject(data); });
-      },
-      function() { fulfill(composed.rejected[0].inspect().error()); }
-    );
-  });
+  return exports.invert(exports.all(promises));
 };
 
 
