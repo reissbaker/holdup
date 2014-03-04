@@ -13,6 +13,13 @@ module.exports = holdup;
 
 },{"./lib/deferred":2,"./lib/error":3,"./lib/holdup":4}],2:[function(_dereq_,module,exports){
 (function (process){
+/*
+ * TODO: Don't consider an error "handled" if the only handler called was one
+ * that specified some error class.
+ *
+ * Also don't fulfill the corresponding promise chain.
+ */
+
 'use strict';
 
 /*
