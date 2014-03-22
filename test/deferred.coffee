@@ -1,5 +1,5 @@
 expect = require 'expect.js'
-{Deferred} = require '../lib/deferred'
+{Deferred} = require '../lib/deferred/deferred'
 holdup = require('../index')
 
 describe 'Deferred', ->
