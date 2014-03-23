@@ -342,46 +342,42 @@ promises callback.
 Working With Values
 --------------------------------------------------------------------------------
 
-##### holdup.data(promises..., callback)
+##### holdup.spread
 
-Takes a list of promises (in array or arg list form) containing promises, and a
-callback function.
+*alias: `holdup.spreadValues`*
 
-Calls the callback function with the data from the promises' `then` callbacks,
-ordered according to the promises' ordering in the arguments.
-
-For example:
-
-```javascript
-holdup.data(a, b, c, function(aData, bData, cData) {
-  // do things with the data from a, b, and c
-});
-```
-
-The callback will only be called once all promises have resolved. If promises
-are resolved in a rejected state, their corresponding data will be passed in as
-`undefined`.
-
-
-##### holdup.errors(promises..., callback)
-
-Takes a list of promises (in array or arg list form) containing promises, and a
-callback function.
-
-Calls the callback function with the errors from the promises' `then` errbacks,
-ordered according to the promises' ordering in the arguments.
+Given a promise and a callback, calls the callback by applying the fulfilled
+value of the promise to the callback.
 
 For example:
 
 ```javascript
-holdup.errors(a, b, c, function(aError, bError, cError) {
-  // do things with the errors from a, b, and c
+var a = holdup.fulfill(10),
+    b = holdup.fulfill(11),
+    c = holdup.all(a, b);
+
+holdup.spread(c, function(aValue, bValue) {
+  // aValue is 10
+  // bValue is 11
 });
 ```
 
-The callback will only be called once all promises have resolved. If promises
-are resolved in a fulfilled state, their corresponding error will be passed in
-as `undefined`.
+
+##### holdup.spreadErrors
+
+Given a promise and a callback, calls the callback by applying the rejected
+error of the promise to the callback.
+
+For example:
+
+```javascript
+var a = holdup.reject(['nope', 'definitely not']),
+
+holdup.spreadErrors(a, function(firstError, secondError) {
+  // firstError is 'nope'
+  // secondError is 'definitely not'
+});
+```
 
 
 
