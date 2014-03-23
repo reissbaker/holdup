@@ -44,7 +44,10 @@
                                             |__/
 </code></pre>
 
-<p>Holdup is a tiny but full-featured flow-control library that makes working with
+<p><a href="http://promises-aplus.github.com/promises-spec">
+  <img src="http://promises-aplus.github.com/promises-spec/assets/logo-small.png" align="right" alt="Promises/A+ logo"></a></p>
+
+<p>Holdup is a small but full-featured flow-control library that makes working with
 promises or callbacks in Javascript easy. With Holdup you define the
 dependencies of your functions and it executes them for you with maximal
 concurrency: you don't have to explicitly state whether they're parallel or
@@ -53,8 +56,8 @@ serial, or what order each one should run in. It just works.</p>
 <p>Holdup runs in Node, Component-spec environments, and ordinary browsers; it has
 no dependencies and is extensively unit-tested. It works with any CommonJS
 Promises/A or Promises/A+ compliant promise implementation; it also provides
-its own Promises/A+ compliant promise implementation. It clocks in at less than
-1.8k minified and gzipped.</p>
+its own Promises/A+ compliant promise implementation. It clocks in at a skinny
+3.7k minified and gzipped.</p>
 
 <h1>
 <a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h1>
@@ -103,10 +106,10 @@ parallel workloads? Holdup handles that well too:</p>
 you just have to specify dependencies you can let Holdup take care of the work
 for you.</p>
 
-<p>Holdup understands more than success, though. Sometimes, things break; it's
+<p>Holdup understands more than success, though. Sometimes things break; it's
 still important to handle those failures. It might also be important to take
-certain actions if <em>enough</em> things break, or if specific combinations of things
-break. With Holdup, it's easy to define those relationships:</p>
+certain actions if specific combinations of things break. With Holdup, it's
+easy to define those relationships:</p>
 
 <div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">taskA</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnA</span><span class="p">),</span>
     <span class="nx">taskB</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnB</span><span class="p">),</span>
@@ -121,34 +124,36 @@ break. With Holdup, it's easy to define those relationships:</p>
 <span class="p">});</span>
 </pre></div>
 
-<p>Similarly, Holdup has a <code>resolved</code> function that fulfills once everything has
+<p>Similarly, Holdup has a <code>settled</code> function that fulfills once everything has
 resolved -- even if everything resolved to an error state, or if some resolved
-one way and others resolved another. It passes the fulfilled and rejected
-promises in separate arrays to the <code>then</code> callback, as so:</p>
+one way and others resolved another. It passes inspection objects with
+<code>.value()</code> and <code>.error()</code> accessor methods to its callback:</p>
 
 <div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">taskA</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnA</span><span class="p">),</span>
     <span class="nx">taskB</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnB</span><span class="p">),</span>
     <span class="nx">taskC</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">fnC</span><span class="p">),</span>
     <span class="nx">taskD</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">resolved</span><span class="p">(</span><span class="nx">taskA</span><span class="p">,</span> <span class="nx">taskB</span><span class="p">,</span> <span class="nx">taskC</span><span class="p">);</span>
 
-<span class="nx">taskD</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">fulfilled</span><span class="p">,</span> <span class="nx">rejected</span><span class="p">)</span> <span class="p">{</span>
+<span class="nx">taskD</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">values</span><span class="p">)</span> <span class="p">{</span>
   <span class="c1">// this is called once taskA, taskB, and taskC are no longer in pending</span>
   <span class="c1">// states.</span>
-  <span class="c1">// fulfilled is an array of which tasks have fulfilled, and rejected is an</span>
-  <span class="c1">// array of which tasks have rejected.</span>
+  <span class="c1">// values is an array of Inspection objects with `.value()` and `.error()`</span>
+  <span class="c1">// accessor methods, along with state accessors like `.isFulfilled()` and</span>
+  <span class="c1">// `.isRejected()`.</span>
 <span class="p">});</span>
 </pre></div>
 
-<p>The <code>all</code>, <code>none</code>, and <code>resolved</code> functions form the basis of Holdup's API, but
-they're not the only ones available. Holdup provides a full-featured functional
-API for working with promises, wrapping Node-style functions, and easily making
-your own promises. Keep reading for the full API documentation.</p>
+<p>The <code>all</code>, <code>none</code>, and <code>settled</code> primitives form much of the basis of Holdup's
+API, but they're not the only methods available. Holdup provides a
+full-featured functional API for working with promises, wrapping Node-style
+functions, and easily making your own promises. Keep reading for the full API
+documentation.</p>
 
 <h1>
 <a name="api" class="anchor" href="#api"><span class="octicon octicon-link"></span></a>API</h1>
 
 <h2>
-<a name="manipulating-promises" class="anchor" href="#manipulating-promises"><span class="octicon octicon-link"></span></a>Manipulating Promises</h2>
+<a name="creating-promises" class="anchor" href="#creating-promises"><span class="octicon octicon-link"></span></a>Creating Promises</h2>
 
 <h5>
 <a name="holdupmakecallback" class="anchor" href="#holdupmakecallback"><span class="octicon octicon-link"></span></a>holdup.make(callback)</h5>
@@ -162,6 +167,43 @@ the <code>fulfill</code> callback, and will call its <code>then</code> errback w
 passed to the <code>reject</code> errback.</p>
 
 <h5>
+<a name="holdupfulfillvalue" class="anchor" href="#holdupfulfillvalue"><span class="octicon octicon-link"></span></a>holdup.fulfill(value)</h5>
+
+<p>Given a value, returns a promise that will fulfill to the value.</p>
+
+<p>Essentially a degenerate, but convenient form of <code>holdup.make</code> for creating
+promises that you know will fulfill to a specific value.</p>
+
+<h5>
+<a name="holdupfcallfn" class="anchor" href="#holdupfcallfn"><span class="octicon octicon-link"></span></a>holdup.fcall(fn)</h5>
+
+<p>Given a function that returns a value, returns a promise that will fulfill to
+the result of the given function.</p>
+
+<p>Essentially a degenerate, but convenient form of <code>holdup.make</code> for creating
+promises that you know will fulfill to a specific value.</p>
+
+<h5>
+<a name="holduprejectfn" class="anchor" href="#holduprejectfn"><span class="octicon octicon-link"></span></a>holdup.reject(fn)</h5>
+
+<p>Given a reason, returns a promise that will reject with the reason.</p>
+
+<p>Essentially a degenerate but convenient form of <code>holdup.make</code> for creating
+promises that you know will reject to a specific value.</p>
+
+<h5>
+<a name="holdupferrfn" class="anchor" href="#holdupferrfn"><span class="octicon octicon-link"></span></a>holdup.ferr(fn)</h5>
+
+<p>Given a function that returns a value, returns a promise that will reject with
+the result of the given function passed as the rejection reason.</p>
+
+<p>Essentially a degenerate but convenient form of <code>holdup.make</code> for creating
+promises that you know will reject to a specific value.</p>
+
+<h2>
+<a name="manipulating-promises" class="anchor" href="#manipulating-promises"><span class="octicon octicon-link"></span></a>Manipulating Promises</h2>
+
+<h5>
 <a name="holdupallpromises" class="anchor" href="#holdupallpromises"><span class="octicon octicon-link"></span></a>holdup.all(promises...)</h5>
 
 <p>Takes an arg list, array, array of arrays, arg lists of arrays... etc
@@ -170,9 +212,9 @@ containing promises.</p>
 <p>Returns a promise that will be fulfilled if all the promises fulfill, and will
 reject as soon as any of the promises reject.</p>
 
-<p>It will call its <code>then</code> callback with the array of all fulfilled promises, in
-the order that they fulfilled. It will call its <code>then</code> errback with the first
-promise to reject.</p>
+<p>It will call its <code>then</code> callback with the array of all fulfilled values, in the
+order that their respective promises were passed in. It will call its <code>then</code>
+errback with the first promise to reject.</p>
 
 <h5>
 <a name="holdupnonepromises" class="anchor" href="#holdupnonepromises"><span class="octicon octicon-link"></span></a>holdup.none(promises...)</h5>
@@ -188,7 +230,9 @@ rejected promises, in the order that they rejected. It will call its <code>then<
 errback with the first promise to fulfill.</p>
 
 <h5>
-<a name="holdupresolvedpromises" class="anchor" href="#holdupresolvedpromises"><span class="octicon octicon-link"></span></a>holdup.resolved(promises...)</h5>
+<a name="holdupsettledpromises" class="anchor" href="#holdupsettledpromises"><span class="octicon octicon-link"></span></a>holdup.settled(promises...)</h5>
+
+<p><em>alias: <code>holdup.resolved</code>, <code>holdup.allSettled</code></em></p>
 
 <p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.</p>
@@ -196,16 +240,16 @@ promises.</p>
 <p>Returns a promise that will be fulfilled once all of the given promises are no
 longer in a pending state; i.e., once they've each been rejected or fulfilled.
 The promises don't have to end in the same state: they only have to leave the
-pending state.</p>
+pending state. The returned promise will never reject.</p>
 
-<p>The returned promise will call its <code>then</code> callback with two arguments: the
-first is an array of all fulfilled promises in the order that they fulfilled,
-and the second is an array of all rejected promises in the order that they
-rejected. If no promises fulfilled, the first argument will be an empty array;
-if no promises rejected, the first argument will similarly be an empty list.</p>
+<p>The returned promise will call its <code>then</code> callback with an array of promise
+Inspection instances, with each inspection in the order that its respective
+promise was passed in.</p>
 
 <h5>
-<a name="holdupfirstfulfilledpromises" class="anchor" href="#holdupfirstfulfilledpromises"><span class="octicon octicon-link"></span></a>holdup.firstFulfilled(promises...)</h5>
+<a name="holdupfirstvaluepromises" class="anchor" href="#holdupfirstvaluepromises"><span class="octicon octicon-link"></span></a>holdup.firstValue(promises...)</h5>
+
+<p><em>alias: <code>holdup.race</code></em></p>
 
 <p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.</p>
@@ -214,11 +258,11 @@ promises.</p>
 promises fulfills, and will reject if none of the promises fulfill.</p>
 
 <p>The returned promise will call its <code>then</code> callback with the first fulfilled
-promise, and will call its <code>then</code> errback with the array of all rejected
-promises in the order that they rejected.</p>
+value, and will call its <code>then</code> errback with the array of all rejected errors
+in the order that their respective promises were passed in.</p>
 
 <h5>
-<a name="holdupfirstrejectedpromises" class="anchor" href="#holdupfirstrejectedpromises"><span class="octicon octicon-link"></span></a>holdup.firstRejected(promises...)</h5>
+<a name="holdupfirsterrorpromises" class="anchor" href="#holdupfirsterrorpromises"><span class="octicon octicon-link"></span></a>holdup.firstError(promises...)</h5>
 
 <p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.</p>
@@ -226,12 +270,12 @@ promises.</p>
 <p>Returns a promise that will be fulfilled as soon as the first of the given
 promises rejects, and will reject if none of the promises reject.</p>
 
-<p>The returned promise will call its <code>then</code> callback with the first rejected
-promise, and will call its <code>then</code> errback with the array of all fulfilled
-promises in the order that they fulfilled.</p>
+<p>The returned promise will call its <code>then</code> callback with the first rejection
+reason, and will call its <code>then</code> errback with the array of all fulfilled values
+in the order that their respective promises were passed in.</p>
 
 <h5>
-<a name="holduplastfulfilledpromises" class="anchor" href="#holduplastfulfilledpromises"><span class="octicon octicon-link"></span></a>holdup.lastFulfilled(promises...)</h5>
+<a name="holduplastvaluepromises" class="anchor" href="#holduplastvaluepromises"><span class="octicon octicon-link"></span></a>holdup.lastValue(promises...)</h5>
 
 <p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.</p>
@@ -240,23 +284,24 @@ promises.</p>
 their pending state, and at least one has fulfilled. It will reject if all
 given promises reject.</p>
 
-<p>The returned promise will call its <code>then</code> callback with the last fulfilled
-promise, and will call its <code>then</code> errback with the array of all rejected
-promises in the order that they rejected.</p>
+<p>The returned promise will call its <code>then</code> callback with the value of the last
+fulfilled promise, and will call its <code>then</code> errback with the array of all
+rejection reasons in the order that the respective promises were passed in.</p>
 
 <h5>
-<a name="holduplastrejectedpromises" class="anchor" href="#holduplastrejectedpromises"><span class="octicon octicon-link"></span></a>holdup.lastRejected(promises...)</h5>
+<a name="holduplasterrorpromises" class="anchor" href="#holduplasterrorpromises"><span class="octicon octicon-link"></span></a>holdup.lastError(promises...)</h5>
 
-<p>Takes an arg list, array, array of arrays, arg list of arrays... etc containing
-promises.</p>
+<p>Takes an arg list, array, array of arrays, arg list of arrays... etc
+containing promises.</p>
 
-<p>Returns a promise that will be fulfilled once all of the promises have left
-their pending state, and at least one has rejected. It will reject if all given
-promises fulfill.</p>
+<p>Returns a promise that will be fulfilled once all of the promises have
+left their pending state, and at least one has rejected. It will reject
+if all given promises fulfill.</p>
 
-<p>The returned promise will call its <code>then</code> callback with the first rejected
-promise, and will call its <code>then</code> errback with the array of all fulfilled
-promises in the order that they fulfilled.</p>
+<p>The returned promise will call its <code>then</code> callback with the rejection reason
+of the last rejected promise, and will call its <code>then</code> errback with the array
+of all fulfilled promise values in the order that their respective promises
+were passed in.</p>
 
 <h5>
 <a name="holdupinvertpromise" class="anchor" href="#holdupinvertpromise"><span class="octicon octicon-link"></span></a>holdup.invert(promise)</h5>
@@ -273,44 +318,40 @@ promises callback.</p>
 <a name="working-with-values" class="anchor" href="#working-with-values"><span class="octicon octicon-link"></span></a>Working With Values</h2>
 
 <h5>
-<a name="holdupdatapromises-callback" class="anchor" href="#holdupdatapromises-callback"><span class="octicon octicon-link"></span></a>holdup.data(promises..., callback)</h5>
+<a name="holdupspread" class="anchor" href="#holdupspread"><span class="octicon octicon-link"></span></a>holdup.spread</h5>
 
-<p>Takes a list of promises (in array or arg list form) containing promises, and a
-callback function.</p>
+<p><em>alias: <code>holdup.spreadValues</code></em></p>
 
-<p>Calls the callback function with the data from the promises' <code>then</code> callbacks,
-ordered according to the promises' ordering in the arguments.</p>
+<p>Given a promise and a callback, calls the callback by applying the fulfilled
+value of the promise to the callback.</p>
 
 <p>For example:</p>
 
-<div class="highlight highlight-javascript"><pre><span class="nx">holdup</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">,</span> <span class="nx">c</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">aData</span><span class="p">,</span> <span class="nx">bData</span><span class="p">,</span> <span class="nx">cData</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// do things with the data from a, b, and c</span>
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">fulfill</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+    <span class="nx">b</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">fulfill</span><span class="p">(</span><span class="mi">11</span><span class="p">),</span>
+    <span class="nx">c</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">all</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">);</span>
+
+<span class="nx">holdup</span><span class="p">.</span><span class="nx">spread</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">aValue</span><span class="p">,</span> <span class="nx">bValue</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// aValue is 10</span>
+  <span class="c1">// bValue is 11</span>
 <span class="p">});</span>
 </pre></div>
-
-<p>The callback will only be called once all promises have resolved. If promises
-are resolved in a rejected state, their corresponding data will be passed in as
-<code>undefined</code>.</p>
 
 <h5>
-<a name="holduperrorspromises-callback" class="anchor" href="#holduperrorspromises-callback"><span class="octicon octicon-link"></span></a>holdup.errors(promises..., callback)</h5>
+<a name="holdupspreaderrors" class="anchor" href="#holdupspreaderrors"><span class="octicon octicon-link"></span></a>holdup.spreadErrors</h5>
 
-<p>Takes a list of promises (in array or arg list form) containing promises, and a
-callback function.</p>
-
-<p>Calls the callback function with the errors from the promises' <code>then</code> errbacks,
-ordered according to the promises' ordering in the arguments.</p>
+<p>Given a promise and a callback, calls the callback by applying the rejected
+error of the promise to the callback.</p>
 
 <p>For example:</p>
 
-<div class="highlight highlight-javascript"><pre><span class="nx">holdup</span><span class="p">.</span><span class="nx">errors</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">,</span> <span class="nx">c</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">aError</span><span class="p">,</span> <span class="nx">bError</span><span class="p">,</span> <span class="nx">cError</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// do things with the errors from a, b, and c</span>
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="nx">holdup</span><span class="p">.</span><span class="nx">reject</span><span class="p">([</span><span class="s1">'nope'</span><span class="p">,</span> <span class="s1">'definitely not'</span><span class="p">]),</span>
+
+<span class="nx">holdup</span><span class="p">.</span><span class="nx">spreadErrors</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">firstError</span><span class="p">,</span> <span class="nx">secondError</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// firstError is 'nope'</span>
+  <span class="c1">// secondError is 'definitely not'</span>
 <span class="p">});</span>
 </pre></div>
-
-<p>The callback will only be called once all promises have resolved. If promises
-are resolved in a fulfilled state, their corresponding error will be passed in
-as <code>undefined</code>.</p>
 
 <h2>
 <a name="timing-functions" class="anchor" href="#timing-functions"><span class="octicon octicon-link"></span></a>Timing Functions</h2>
@@ -362,6 +403,8 @@ that the scope of <code>napply</code> be <code>null</code>.</p>
 <h5>
 <a name="holdupncallscope-nodefn-args" class="anchor" href="#holdupncallscope-nodefn-args"><span class="octicon octicon-link"></span></a>holdup.ncall(scope, nodeFn, args...)</h5>
 
+<p><em>alias: <code>holdup.wrapFor</code></em></p>
+
 <p>Given a scope, a Node-style async function, and optional arguments, returns a
 promise that fulfills if the given function completes successfully and rejects
 if it doesn't.</p>
@@ -373,6 +416,8 @@ async function.</p>
 
 <h5>
 <a name="holdupnfcall" class="anchor" href="#holdupnfcall"><span class="octicon octicon-link"></span></a>holdup.nfcall</h5>
+
+<p><em>alias: <code>holdup.wrap</code></em></p>
 
 <p>A convenient, scopeless version of <code>ncall</code>, for times when it's acceptable that
 the scope of <code>ncall</code> be <code>null</code>.</p>
@@ -391,6 +436,8 @@ async function.</p>
 
 <h5>
 <a name="holdupninvokeobj-methodname-args" class="anchor" href="#holdupninvokeobj-methodname-args"><span class="octicon octicon-link"></span></a>holdup.ninvoke(obj, methodName, args...)</h5>
+
+<p><em>alias: <code>holdup.send</code></em></p>
 
 <p>Given an object, a method name corresponding to a Node-style async function,
 and an optional argument list of parameters, returns a promise that fulfills if
@@ -424,6 +471,8 @@ async function.</p>
 <h5>
 <a name="holdupnfbindnodefn-args" class="anchor" href="#holdupnfbindnodefn-args"><span class="octicon octicon-link"></span></a>holdup.nfbind(nodeFn, args...)</h5>
 
+<p><em>alias: <code>holdup.denodeify</code></em></p>
+
 <p>A convenient, scopeless version of nbind, for times when it's acceptable that
 the scope of <code>nbind</code> be <code>null</code>.</p>
 
@@ -434,6 +483,89 @@ the scope of <code>nbind</code> be <code>null</code>.</p>
 <code>data</code> and <code>err</code> arguments when the promise fulfills or rejects.  Useful for
 creating dual promise/callback APIs, or for using promises internally but
 exposing only a callback API.</p>
+
+<h2>
+<a name="promise-methods" class="anchor" href="#promise-methods"><span class="octicon octicon-link"></span></a>Promise Methods</h2>
+
+<p>Promises created by Holdup are Promises/A+ compliant and expose the following
+methods:</p>
+
+<h5>
+<a name="promisethenonfulfilled-onrejected" class="anchor" href="#promisethenonfulfilled-onrejected"><span class="octicon octicon-link"></span></a>promise.then(onFulfilled, onRejected)</h5>
+
+<p>Given optional callbacks to be called on promise fulfillment or rejection,
+returns a new promise that will adopt the state of the <code>onFulfilled</code> callback
+if <code>promise</code> fulfills, or will adopt the state of <code>promise</code> otherwise.</p>
+
+<h5>
+<a name="promiseerroronrejected" class="anchor" href="#promiseerroronrejected"><span class="octicon octicon-link"></span></a>promise.error(onRejected)</h5>
+
+<p>An alias for <code>promise.then(null, onRejected)</code>.</p>
+
+<h5>
+<a name="promiseerrorerrorclass-onrejected" class="anchor" href="#promiseerrorerrorclass-onrejected"><span class="octicon octicon-link"></span></a>promise.error(ErrorClass, onRejected)</h5>
+
+<p>Similar to a call to <code>promise.error(onRejected)</code>, except that <code>onRejected</code> will
+only be called if the given rejection reason is an instance of <code>ErrorClass</code>.</p>
+
+<h5>
+<a name="promisethrownonthrown" class="anchor" href="#promisethrownonthrown"><span class="octicon octicon-link"></span></a>promise.thrown(onThrown)</h5>
+
+<p><em><img class="emoji" title=":warning:" alt=":warning:" src="https://github.global.ssl.fastly.net/images/icons/emoji/warning.png" height="20" width="20" align="absmiddle"> Warning: <code>promise.thrown</code> is not interoperable with other
+Promises/A+ spec libraries; the Promises/A+ spec doesn't make it possible in a
+general case to tell whether a promise has rejected due to a thrown error, or
+whether it rejected for a different reason. If you need the functionality of
+<code>promise.thrown</code> — for example, if you're running in Node and follow the <a href="http://nodejs.org/api/domain.html#domain_warning_don_t_ignore_errors">Node
+core team's recommendation to shutdown on thrown errors to avoid memory
+leaks</a> — it's recommended that you not use Holdup in conjunction with
+other Promise libraries.</em></p>
+
+<p>Similar to a call to <code>promise.then(null, onThrown)</code>, except that <code>onThrown</code>
+will be called only if the promise rejects due to a thrown error.</p>
+
+<h5>
+<a name="promisethrownthrownclass-onthrown" class="anchor" href="#promisethrownthrownclass-onthrown"><span class="octicon octicon-link"></span></a>promise.thrown(ThrownClass, onThrown)</h5>
+
+<p>Similar to a call to <code>promise.thrown(onThrown)</code>, except that <code>onThrown</code> will be
+called only if the given rejection reason is an instance of <code>ThrownClass</code>.</p>
+
+<h2>
+<a name="handling-uncaught-errors" class="anchor" href="#handling-uncaught-errors"><span class="octicon octicon-link"></span></a>Handling Uncaught Errors</h2>
+
+<p>The Promises/A+ spec dictates that errors should never "leak" synchronously out
+of a promise: if you reject or throw an error, you'll never know unless you've
+attached an error handler (with <code>.then</code>, or the Holdup-specific <code>.error</code> or
+<code>.thrown</code> methods).</p>
+
+<p>Since often you'll want to take some action if an error occurs and is never
+caught (for example, report it to your error logger, or gracefully restart your
+server), Holdup provides events that fire when uncaught errors occur.</p>
+
+<h5>
+<a name="holduponerror-fn" class="anchor" href="#holduponerror-fn"><span class="octicon octicon-link"></span></a>holdup.on('error', fn)</h5>
+
+<p>Calls <code>fn</code> if an uncaught rejection or thrown error occurs.</p>
+
+<h5>
+<a name="holduponthrown-fn" class="anchor" href="#holduponthrown-fn"><span class="octicon octicon-link"></span></a>holdup.on('thrown', fn)</h5>
+
+<p>Calls <code>fn</code> if an uncaught thrown error occurs. Note that "catching" the error
+by handling it with an <code>onRejected</code> callback isn't enough: to prevent this from
+firing, you must use a <code>.thrown</code> callback. Like <code>.thrown</code> and other
+thrown-error-specific code in Holdup, this is not compatible with other promise
+libraries.</p>
+
+<h5>
+<a name="holdupofftype-fn" class="anchor" href="#holdupofftype-fn"><span class="octicon octicon-link"></span></a>holdup.off(type, fn)</h5>
+
+<p>Removes the given callback from listening to the type (<code>'error'</code> or <code>'thrown'</code>)
+of event.</p>
+
+<h5>
+<a name="holduponcetype-fn" class="anchor" href="#holduponcetype-fn"><span class="octicon octicon-link"></span></a>holdup.once(type, fn)</h5>
+
+<p>Calls <code>holdup.on(type, fn)</code>, and then after the callback fires calls
+<code>holdup.off(type, fn)</code>.</p>
 
 <h1>
 <a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h1>
