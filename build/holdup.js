@@ -858,7 +858,7 @@ exports.none = function() {
 
 
 /*
- * ### holdup.resolved
+ * ### holdup.settled
  *
  * Takes an arg list, array, array of arrays, arg list of arrays... etc
  * containing promises.
@@ -1081,73 +1081,50 @@ exports.invert = function(promise) {
  * ---------------------------------------------------------------------------
  */
 
+
+/*
+ * ### holdup.spread
+ *
+ * Given a promise and a callback, calls the callback by applying the fulfilled
+ * value of the promise to the callback.
+ *
+ * For example:
+ *
+ *     var a = holdup.fulfill(10),
+ *         b = holdup.fulfill(11),
+ *         c = holdup.all(a, b);
+ *
+ *     holdup.spread(c, function(aValue, bValue) {
+ *       // aValue is 10
+ *       // bValue is 11
+ *     });
+ */
+
 exports.spreadValues = exports.spread = function(promise, callback) {
   promise.then(function(arrish) { callback.apply(undefined, arrish); });
 };
+
+
+/*
+ * ### holdup.spreadErrors
+ *
+ * Given a promise and a callback, calls the callback by applying the rejected
+ * error of the promise to the callback.
+ *
+ * For example:
+ *
+ *     var a = holdup.reject(['nope', 'definitely not']),
+ *
+ *     holdup.spreadErrors(a, function(firstError, secondError) {
+ *       // firstError is 'nope'
+ *       // secondError is 'definitely not'
+ *     });
+ */
 
 exports.spreadErrors = function(promise, callback) {
   promise.then(undefined, function(arrish) {
     callback.apply(undefined, arrish);
   });
-};
-
-/*
- * ### holdup.data
- *
- * Takes a list of promises (in array or arg list form) containing promises,
- * and a callback function.
- *
- * Calls the callback function with the data from the promises' `then`
- * callbacks, ordered according to the promises' ordering in the arguments.
- *
- * For example:
- *
- *     holdup.data(a, b, c, function(aData, bData, cData) {
- *       // do things with the data from a, b, and c
- *     });
- *
- * The callback will only be called once all promises have resolved. If
- * promises are resolved in a rejected state, their corresponding data will be
- * passed in as `undefined`.
- */
-
-exports.data = function() {
-  var args = argArray(arguments),
-      promises = extract(args.slice(0, args.length - 1)),
-      composed = collect(promises, false),
-      callback = args[args.length - 1];
-  composed.then(function(data) { callback.apply(null, data); });
-  return composed;
-};
-
-
-/*
- * ### holdup.errors
- *
- * Takes a list of promises (in array or arg list form) containing promises,
- * and a callback function.
- *
- * Calls the callback function with the errors from the promises' `then`
- * errbacks, ordered according to the promises' ordering in the arguments.
- *
- * For example:
- *
- *     holdup.errors(a, b, c, function(aError, bError, cError) {
- *       // do things with the errors from a, b, and c
- *     });
- *
- * The callback will only be called once all promises have resolved. If
- * promises are resolved in a fulfilled state, their corresponding error will
- * be passed in as `undefined`.
- */
-
-exports.errors = function() {
-  var args = argArray(arguments),
-      promises = extract(args.slice(0, args.length - 1)),
-      composed = collect(promises, true),
-      callback = args[args.length - 1];
-  composed.then(function(data) { callback.apply(null, data); });
-  return composed;
 };
 
 
