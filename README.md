@@ -83,10 +83,10 @@ In the above, `taskE` depends both on `taskC` and `taskD`. `taskD` depends on
 you just have to specify dependencies you can let Holdup take care of the work
 for you.
 
-Holdup understands more than success, though. Sometimes, things break; it's
+Holdup understands more than success, though. Sometimes things break; it's
 still important to handle those failures. It might also be important to take
-certain actions if *enough* things break, or if specific combinations of things
-break. With Holdup, it's easy to define those relationships:
+certain actions if specific combinations of things break. With Holdup, it's
+easy to define those relationships:
 
 ```javascript
 var taskA = holdup.wrap(fnA),
@@ -102,10 +102,10 @@ taskE.then(function() {
 });
 ```
 
-Similarly, Holdup has a `resolved` function that fulfills once everything has
+Similarly, Holdup has a `settled` function that fulfills once everything has
 resolved -- even if everything resolved to an error state, or if some resolved
-one way and others resolved another. It passes the fulfilled and rejected
-promises in separate arrays to the `then` callback, as so:
+one way and others resolved another. It passes inspection objects with
+`.value()` and `.error()` accessor methods to its callback:
 
 ```javascript
 var taskA = holdup.wrap(fnA),
@@ -113,18 +113,20 @@ var taskA = holdup.wrap(fnA),
     taskC = holdup.wrap(fnC),
     taskD = holdup.resolved(taskA, taskB, taskC);
 
-taskD.then(function(fulfilled, rejected) {
+taskD.then(function(values) {
   // this is called once taskA, taskB, and taskC are no longer in pending
   // states.
-  // fulfilled is an array of which tasks have fulfilled, and rejected is an
-  // array of which tasks have rejected.
+  // values is an array of Inspection objects with `.value()` and `.error()`
+  // accessor methods, along with state accessors like `.isFulfilled()` and
+  // `.isRejected()`.
 });
 ```
 
-The `all`, `none`, and `resolved` functions form the basis of Holdup's API, but
-they're not the only ones available. Holdup provides a full-featured functional
-API for working with promises, wrapping Node-style functions, and easily making
-your own promises. Keep reading for the full API documentation.
+The `all`, `none`, and `settled` primitives form much of the basis of Holdup's
+API, but they're not the only methods available. Holdup provides a
+full-featured functional API for working with promises, wrapping Node-style
+functions, and easily making your own promises. Keep reading for the full API
+documentation.
 
 
 API
