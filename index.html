@@ -511,6 +511,8 @@ only be called if the given rejection reason is an instance of <code>ErrorClass<
 <h5>
 <a name="promisethrownonthrown" class="anchor" href="#promisethrownonthrown"><span class="octicon octicon-link"></span></a>promise.thrown(onThrown)</h5>
 
+<p><em>alias: <code>promise.thrownError</code></em></p>
+
 <p><em><img class="emoji" title=":warning:" alt=":warning:" src="https://github.global.ssl.fastly.net/images/icons/emoji/warning.png" height="20" width="20" align="absmiddle"> Warning: <code>promise.thrown</code> is not interoperable with other
 Promises/A+ spec libraries; the Promises/A+ spec doesn't make it possible in a
 general case to tell whether a promise has rejected due to a thrown error, or
@@ -526,8 +528,24 @@ will be called only if the promise rejects due to a thrown error.</p>
 <h5>
 <a name="promisethrownthrownclass-onthrown" class="anchor" href="#promisethrownthrownclass-onthrown"><span class="octicon octicon-link"></span></a>promise.thrown(ThrownClass, onThrown)</h5>
 
+<p><em>alias: <code>promise.thrownError</code></em></p>
+
 <p>Similar to a call to <code>promise.thrown(onThrown)</code>, except that <code>onThrown</code> will be
 called only if the given rejection reason is an instance of <code>ThrownClass</code>.</p>
+
+<h5>
+<a name="promiseunthrownerroronrejected" class="anchor" href="#promiseunthrownerroronrejected"><span class="octicon octicon-link"></span></a>promise.unthrownError(onRejected)</h5>
+
+<p>The opposite of <code>promise.thrown</code>: the <code>onRejected</code> callback will only be called
+if the promise rejects without throwing an error (e.g. a Node-style function
+passes an error object back, rather than throwing an error).</p>
+
+<h5>
+<a name="promiseunthrownerrorerrorclass-onrejected" class="anchor" href="#promiseunthrownerrorerrorclass-onrejected"><span class="octicon octicon-link"></span></a>promise.unthrownError(ErrorClass, onRejected)</h5>
+
+<p>Similar to a call to <code>promise.unthrownError(onRejected)</code>, except that
+<code>onRejected</code> will be called only if the given rejection reason is an instance
+of <code>ErrorClass</code>.</p>
 
 <h2>
 <a name="handling-uncaught-errors" class="anchor" href="#handling-uncaught-errors"><span class="octicon octicon-link"></span></a>Handling Uncaught Errors</h2>
