@@ -230,7 +230,8 @@ promises that you know will reject to a specific value.
 Manipulating Promises
 --------------------------------------------------------------------------------
 
-##### holdup.all(promises...)
+
+##### holdup.all
 
 Takes an arg list, array, array of arrays, arg lists of arrays... etc
 containing promises.
@@ -238,12 +239,12 @@ containing promises.
 Returns a promise that will be fulfilled if all the promises fulfill, and will
 reject as soon as any of the promises reject.
 
-It will call its `then` callback with the array of all fulfilled promises, in
-the order that they fulfilled. It will call its `then` errback with the first
-promise to reject.
+It will call its `then` callback with the array of all fulfilled values, in the
+order that their respective promises were passed in. It will call its `then`
+errback with the first promise to reject.
 
 
-##### holdup.none(promises...)
+##### holdup.none
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -256,7 +257,7 @@ rejected promises, in the order that they rejected. It will call its `then`
 errback with the first promise to fulfill.
 
 
-##### holdup.resolved(promises...)
+##### holdup.resolved
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -264,17 +265,14 @@ promises.
 Returns a promise that will be fulfilled once all of the given promises are no
 longer in a pending state; i.e., once they've each been rejected or fulfilled.
 The promises don't have to end in the same state: they only have to leave the
-pending state.
+pending state. The returned promise will never reject.
 
-The returned promise will call its `then` callback with a hash containing two
-keys: `fulfilled` and `rejected`. The `fulfilled` key has an array of all
-fulfilled promises in the order that they fulfilled, and the `rejected` key has
-an array of all rejected promises in the order that they rejected.  If no
-promises fulfilled, the `fulfilled` key will point to an empty array; if no
-promises rejected, the `rejected` key will similarly point to an empty list.
+The returned promise will call its `then` callback with an array of promise
+Inspection instances, with each inspection in the order that its respective
+promise was passed in.
 
 
-##### holdup.firstFulfilled(promises...)
+##### holdup.firstValue
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -283,11 +281,11 @@ Returns a promise that will be fulfilled as soon as the first of the given
 promises fulfills, and will reject if none of the promises fulfill.
 
 The returned promise will call its `then` callback with the first fulfilled
-promise, and will call its `then` errback with the array of all rejected
-promises in the order that they rejected.
+value, and will call its `then` errback with the array of all rejected errors
+in the order that their respective promises were passed in.
 
 
-##### holdup.firstRejected(promises...)
+##### holdup.firstError
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -295,12 +293,12 @@ promises.
 Returns a promise that will be fulfilled as soon as the first of the given
 promises rejects, and will reject if none of the promises reject.
 
-The returned promise will call its `then` callback with the first rejected
-promise, and will call its `then` errback with the array of all fulfilled
-promises in the order that they fulfilled.
+The returned promise will call its `then` callback with the first rejection
+reason, and will call its `then` errback with the array of all fulfilled values
+in the order that their respective promises were passed in.
 
 
-##### holdup.lastFulfilled(promises...)
+##### holdup.lastValue
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -309,23 +307,24 @@ Returns a promise that will be fulfilled once all of the promises have left
 their pending state, and at least one has fulfilled. It will reject if all
 given promises reject.
 
-The returned promise will call its `then` callback with the last fulfilled
-promise, and will call its `then` errback with the array of all rejected
-promises in the order that they rejected.
+The returned promise will call its `then` callback with the value of the last
+fulfilled promise, and will call its `then` errback with the array of all
+rejection reasons in the order that the respective promises were passed in.
 
 
-##### holdup.lastRejected(promises...)
+##### holdup.lastError
 
-Takes an arg list, array, array of arrays, arg list of arrays... etc containing
-promises.
+Takes an arg list, array, array of arrays, arg list of arrays... etc
+containing promises.
 
-Returns a promise that will be fulfilled once all of the promises have left
-their pending state, and at least one has rejected. It will reject if all given
-promises fulfill.
+Returns a promise that will be fulfilled once all of the promises have
+left their pending state, and at least one has rejected. It will reject
+if all given promises fulfill.
 
-The returned promise will call its `then` callback with the first rejected
-promise, and will call its `then` errback with the array of all fulfilled
-promises in the order that they fulfilled.
+The returned promise will call its `then` callback with the rejection reason
+of the last rejected promise, and will call its `then` errback with the array
+of all fulfilled promise values in the order that their respective promises
+were passed in.
 
 
 ##### holdup.invert(promise)
