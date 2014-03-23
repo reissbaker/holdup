@@ -499,6 +499,8 @@ only be called if the given rejection reason is an instance of `ErrorClass`.
 
 ##### promise.thrown(onThrown)
 
+*alias: `promise.thrownError`*
+
 *:warning: Warning: `promise.thrown` is not interoperable with other
 Promises/A+ spec libraries; the Promises/A+ spec doesn't make it possible in a
 general case to tell whether a promise has rejected due to a thrown error, or
@@ -516,8 +518,23 @@ will be called only if the promise rejects due to a thrown error.
 
 ##### promise.thrown(ThrownClass, onThrown)
 
+*alias: `promise.thrownError`*
+
 Similar to a call to `promise.thrown(onThrown)`, except that `onThrown` will be
 called only if the given rejection reason is an instance of `ThrownClass`.
+
+
+##### promise.unthrownError(onRejected)
+
+The opposite of `promise.thrown`: the `onRejected` callback will only be called
+if the promise rejects without throwing an error (e.g. a Node-style function
+passes an error object back, rather than throwing an error).
+
+##### promise.unthrownError(ErrorClass, onRejected)
+
+Similar to a call to `promise.unthrownError(onRejected)`, except that
+`onRejected` will be called only if the given rejection reason is an instance
+of `ErrorClass`.
 
 
 
