@@ -276,6 +276,8 @@ promise was passed in.
 
 ##### holdup.firstValue
 
+*alias: `holdup.race`*
+
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
 
@@ -433,6 +435,8 @@ that the scope of `napply` be `null`.
 
 ##### holdup.ncall(scope, nodeFn, args...)
 
+*alias: `holdup.wrapFor`*
+
 Given a scope, a Node-style async function, and optional arguments, returns a
 promise that fulfills if the given function completes successfully and rejects
 if it doesn't.
@@ -444,6 +448,8 @@ async function.
 
 
 ##### holdup.nfcall
+
+*alias: `holdup.wrap`*
 
 A convenient, scopeless version of `ncall`, for times when it's acceptable that
 the scope of `ncall` be `null`.
@@ -462,6 +468,8 @@ async function.
 
 
 ##### holdup.ninvoke(obj, methodName, args...)
+
+*alias: `holdup.send`*
 
 Given an object, a method name corresponding to a Node-style async function,
 and an optional argument list of parameters, returns a promise that fulfills if
@@ -495,6 +503,8 @@ readProust().then(function(text) {
 
 
 ##### holdup.nfbind(nodeFn, args...)
+
+*alias: `holdup.denodeify`*
 
 A convenient, scopeless version of nbind, for times when it's acceptable that
 the scope of `nbind` be `null`.
