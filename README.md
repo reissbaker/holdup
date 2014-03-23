@@ -230,7 +230,8 @@ promises that you know will reject to a specific value.
 Manipulating Promises
 --------------------------------------------------------------------------------
 
-##### holdup.all(promises...)
+
+##### holdup.all
 
 Takes an arg list, array, array of arrays, arg lists of arrays... etc
 containing promises.
@@ -238,12 +239,12 @@ containing promises.
 Returns a promise that will be fulfilled if all the promises fulfill, and will
 reject as soon as any of the promises reject.
 
-It will call its `then` callback with the array of all fulfilled promises, in
-the order that they fulfilled. It will call its `then` errback with the first
-promise to reject.
+It will call its `then` callback with the array of all fulfilled values, in the
+order that their respective promises were passed in. It will call its `then`
+errback with the first promise to reject.
 
 
-##### holdup.none(promises...)
+##### holdup.none
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -256,7 +257,9 @@ rejected promises, in the order that they rejected. It will call its `then`
 errback with the first promise to fulfill.
 
 
-##### holdup.resolved(promises...)
+##### holdup.settled
+
+*alias: `holdup.resolved`, `holdup.allSettled`*
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -264,17 +267,16 @@ promises.
 Returns a promise that will be fulfilled once all of the given promises are no
 longer in a pending state; i.e., once they've each been rejected or fulfilled.
 The promises don't have to end in the same state: they only have to leave the
-pending state.
+pending state. The returned promise will never reject.
 
-The returned promise will call its `then` callback with a hash containing two
-keys: `fulfilled` and `rejected`. The `fulfilled` key has an array of all
-fulfilled promises in the order that they fulfilled, and the `rejected` key has
-an array of all rejected promises in the order that they rejected.  If no
-promises fulfilled, the `fulfilled` key will point to an empty array; if no
-promises rejected, the `rejected` key will similarly point to an empty list.
+The returned promise will call its `then` callback with an array of promise
+Inspection instances, with each inspection in the order that its respective
+promise was passed in.
 
 
-##### holdup.firstFulfilled(promises...)
+##### holdup.firstValue
+
+*alias: `holdup.race`*
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -283,11 +285,11 @@ Returns a promise that will be fulfilled as soon as the first of the given
 promises fulfills, and will reject if none of the promises fulfill.
 
 The returned promise will call its `then` callback with the first fulfilled
-promise, and will call its `then` errback with the array of all rejected
-promises in the order that they rejected.
+value, and will call its `then` errback with the array of all rejected errors
+in the order that their respective promises were passed in.
 
 
-##### holdup.firstRejected(promises...)
+##### holdup.firstError
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -295,12 +297,12 @@ promises.
 Returns a promise that will be fulfilled as soon as the first of the given
 promises rejects, and will reject if none of the promises reject.
 
-The returned promise will call its `then` callback with the first rejected
-promise, and will call its `then` errback with the array of all fulfilled
-promises in the order that they fulfilled.
+The returned promise will call its `then` callback with the first rejection
+reason, and will call its `then` errback with the array of all fulfilled values
+in the order that their respective promises were passed in.
 
 
-##### holdup.lastFulfilled(promises...)
+##### holdup.lastValue
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -309,23 +311,24 @@ Returns a promise that will be fulfilled once all of the promises have left
 their pending state, and at least one has fulfilled. It will reject if all
 given promises reject.
 
-The returned promise will call its `then` callback with the last fulfilled
-promise, and will call its `then` errback with the array of all rejected
-promises in the order that they rejected.
+The returned promise will call its `then` callback with the value of the last
+fulfilled promise, and will call its `then` errback with the array of all
+rejection reasons in the order that the respective promises were passed in.
 
 
-##### holdup.lastRejected(promises...)
+##### holdup.lastError
 
-Takes an arg list, array, array of arrays, arg list of arrays... etc containing
-promises.
+Takes an arg list, array, array of arrays, arg list of arrays... etc
+containing promises.
 
-Returns a promise that will be fulfilled once all of the promises have left
-their pending state, and at least one has rejected. It will reject if all given
-promises fulfill.
+Returns a promise that will be fulfilled once all of the promises have
+left their pending state, and at least one has rejected. It will reject
+if all given promises fulfill.
 
-The returned promise will call its `then` callback with the first rejected
-promise, and will call its `then` errback with the array of all fulfilled
-promises in the order that they fulfilled.
+The returned promise will call its `then` callback with the rejection reason
+of the last rejected promise, and will call its `then` errback with the array
+of all fulfilled promise values in the order that their respective promises
+were passed in.
 
 
 ##### holdup.invert(promise)
@@ -343,46 +346,42 @@ promises callback.
 Working With Values
 --------------------------------------------------------------------------------
 
-##### holdup.data(promises..., callback)
+##### holdup.spread
 
-Takes a list of promises (in array or arg list form) containing promises, and a
-callback function.
+*alias: `holdup.spreadValues`*
 
-Calls the callback function with the data from the promises' `then` callbacks,
-ordered according to the promises' ordering in the arguments.
-
-For example:
-
-```javascript
-holdup.data(a, b, c, function(aData, bData, cData) {
-  // do things with the data from a, b, and c
-});
-```
-
-The callback will only be called once all promises have resolved. If promises
-are resolved in a rejected state, their corresponding data will be passed in as
-`undefined`.
-
-
-##### holdup.errors(promises..., callback)
-
-Takes a list of promises (in array or arg list form) containing promises, and a
-callback function.
-
-Calls the callback function with the errors from the promises' `then` errbacks,
-ordered according to the promises' ordering in the arguments.
+Given a promise and a callback, calls the callback by applying the fulfilled
+value of the promise to the callback.
 
 For example:
 
 ```javascript
-holdup.errors(a, b, c, function(aError, bError, cError) {
-  // do things with the errors from a, b, and c
+var a = holdup.fulfill(10),
+    b = holdup.fulfill(11),
+    c = holdup.all(a, b);
+
+holdup.spread(c, function(aValue, bValue) {
+  // aValue is 10
+  // bValue is 11
 });
 ```
 
-The callback will only be called once all promises have resolved. If promises
-are resolved in a fulfilled state, their corresponding error will be passed in
-as `undefined`.
+
+##### holdup.spreadErrors
+
+Given a promise and a callback, calls the callback by applying the rejected
+error of the promise to the callback.
+
+For example:
+
+```javascript
+var a = holdup.reject(['nope', 'definitely not']),
+
+holdup.spreadErrors(a, function(firstError, secondError) {
+  // firstError is 'nope'
+  // secondError is 'definitely not'
+});
+```
 
 
 
@@ -436,6 +435,8 @@ that the scope of `napply` be `null`.
 
 ##### holdup.ncall(scope, nodeFn, args...)
 
+*alias: `holdup.wrapFor`*
+
 Given a scope, a Node-style async function, and optional arguments, returns a
 promise that fulfills if the given function completes successfully and rejects
 if it doesn't.
@@ -447,6 +448,8 @@ async function.
 
 
 ##### holdup.nfcall
+
+*alias: `holdup.wrap`*
 
 A convenient, scopeless version of `ncall`, for times when it's acceptable that
 the scope of `ncall` be `null`.
@@ -465,6 +468,8 @@ async function.
 
 
 ##### holdup.ninvoke(obj, methodName, args...)
+
+*alias: `holdup.send`*
 
 Given an object, a method name corresponding to a Node-style async function,
 and an optional argument list of parameters, returns a promise that fulfills if
@@ -498,6 +503,8 @@ readProust().then(function(text) {
 
 
 ##### holdup.nfbind(nodeFn, args...)
+
+*alias: `holdup.denodeify`*
 
 A convenient, scopeless version of nbind, for times when it's acceptable that
 the scope of `nbind` be `null`.

@@ -1,5 +1,5 @@
 expect = require 'expect.js'
-{Deferred} = require '../lib/deferred'
+{Deferred} = require '../lib/deferred/deferred'
 holdup = require('../index')
 
 describe 'Deferred', ->
@@ -177,6 +177,24 @@ describe 'Deferred', ->
     chained.error (error) ->
       expect(error).to.be 10
       done()
+
+  it 'calls .unthrownError handlers on rejections', (done) ->
+    promise = new Deferred
+    promise.unthrownError -> done()
+    promise.reject(10)
+
+  it 'passes reasons through to .unthrownError callbacks', (done) ->
+    promise = new Deferred
+    promise.unthrownError (r) ->
+      expect(r).to.be 10
+      done()
+    promise.reject(10)
+
+  it 'does not call .unthrownError callbacks on thrown errors', (done) ->
+    promise = new Deferred
+    promise.unthrownError -> done()
+    promise.throwError(10)
+    done()
 
   describe '.inspect', ->
     describe '.value', ->

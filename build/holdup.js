@@ -1,7 +1,7 @@
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.holdup=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-var Deferred = _dereq_('./lib/deferred').Deferred,
-    holdup = _dereq_('./lib/holdup'),
-    error = _dereq_('./lib/error');
+var Deferred = _dereq_('./lib/deferred/deferred').Deferred,
+    holdup = _dereq_('./lib/holdup/holdup'),
+    error = _dereq_('./lib/deferred/error');
 
 holdup.Deferred = Deferred;
 holdup.on = error.events.on;
@@ -11,7 +11,7 @@ holdup.resetErrors = error.reset;
 
 module.exports = holdup;
 
-},{"./lib/deferred":2,"./lib/error":3,"./lib/holdup":4}],2:[function(_dereq_,module,exports){
+},{"./lib/deferred/deferred":2,"./lib/deferred/error":3,"./lib/holdup/holdup":8}],2:[function(_dereq_,module,exports){
 (function (process){
 'use strict';
 
@@ -23,26 +23,12 @@ module.exports = holdup;
 
 var error = _dereq_('./error'),
     state = _dereq_('./state'),
-    Inspection = _dereq_('./inspection');
+    Inspection = _dereq_('./inspection'),
+    Flyweight = _dereq_('./flyweight');
 
 var logError = function() {};
 if(typeof console !== 'undefined' && typeof console.log === 'function') {
   logError = function() { console.log.apply(console, arguments); };
-}
-
-
-
-/*
- * Deferred Flyweight
- * ---------------------------------------------------------------------------
- */
-
-function Flyweight(deferred) {
-  this.then = bind(deferred.then, deferred);
-  this.error = bind(deferred.error, deferred);
-  this.thrown = bind(deferred.thrown, deferred);
-  this.inspect = bind(deferred.inspect, deferred);
-  this._deferred = deferred;
 }
 
 
@@ -81,7 +67,7 @@ Deferred.prototype.then = function(callback, errback, thrownBack) {
   return new Flyweight(deferred);
 };
 
-Deferred.prototype.thrown = function(ThrownClass, thrownBack) {
+Deferred.prototype.thrownError = function(ThrownClass, thrownBack) {
   if(!thrownBack) {
     thrownBack = ThrownClass;
     ThrownClass = null;
@@ -91,8 +77,13 @@ Deferred.prototype.thrown = function(ThrownClass, thrownBack) {
   return this.then(null, null, function(e) {
     if(ThrownClass === null) return thrownBack(e);
     if(e instanceof ThrownClass) return thrownBack(e);
+    var t = new Deferred;
+    t.throwError(e);
+    return t;
   });
 };
+
+Deferred.prototype.thrown = Deferred.prototype.thrownError;
 
 Deferred.prototype.error = function(ErrorClass, errback) {
   if(!errback) {
@@ -104,6 +95,30 @@ Deferred.prototype.error = function(ErrorClass, errback) {
   return this.then(null, function(reason) {
     if(ErrorClass === null) return errback(reason);
     if(reason instanceof ErrorClass) return errback(reason);
+    var e = new Deferred;
+    e.reject(reason);
+    return e;
+  });
+};
+
+Deferred.prototype.unthrownError = function(ErrorClass, errback) {
+  if(!errback) {
+    errback = ErrorClass;
+    ErrorClass = null;
+  }
+  if(!errback) return this.then();
+
+  var that = this;
+  return this.error(ErrorClass, function(r) {
+    var d,
+        i = that.inspect();
+    if(i.isThrown()) {
+      d = new Deferred;
+      d.throwError(r);
+      return d;
+    }
+
+    return errback(r);
   });
 };
 
@@ -327,7 +342,7 @@ function resolve(deferred, x) {
 
   // 1. If promise and x refer to the same object, reject promise with a
   // TypeError as the reason.
-  shortCircuit(deferred, x);
+  if(shortCircuit(deferred, x)) return;
 
   // 2. If x is a promise, adopt its state.
   // 3. Otherwise, if x is an object or function,
@@ -470,7 +485,7 @@ function runFunctions(fns, value) {
 exports.Deferred = Deferred;
 
 }).call(this,_dereq_("/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./error":3,"./inspection":5,"./state":6,"/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":7}],3:[function(_dereq_,module,exports){
+},{"./error":3,"./flyweight":4,"./inspection":5,"./state":7,"/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":10}],3:[function(_dereq_,module,exports){
 (function (process){
 /*
 * Error Handling
@@ -608,10 +623,103 @@ function announceException(asyncErr) {
 }
 
 }).call(this,_dereq_("/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":7}],4:[function(_dereq_,module,exports){
+},{"/Users/mattbaker/Hack/holdup/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":10}],4:[function(_dereq_,module,exports){
+/*
+ * Deferred Flyweight
+ * ---------------------------------------------------------------------------
+ */
+
+function Flyweight(deferred) {
+  this.then = bind(deferred.then, deferred);
+  this.error = bind(deferred.error, deferred);
+  this.thrown = bind(deferred.thrown, deferred);
+  this.inspect = bind(deferred.inspect, deferred);
+  this._deferred = deferred;
+}
+
+
+function bind(method, scope) {
+  return function() { return method.apply(scope, arguments); };
+}
+
+module.exports = Flyweight;
+
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var Deferred = _dereq_('./deferred').Deferred;
+var state = _dereq_('./state'),
+    stateContainer = _dereq_('./state-container'),
+    error = _dereq_('./error');
+
+function Inspection(state, value) {
+  this._s = stateContainer(state, value);
+}
+
+Inspection.prototype.value = function() {
+  if(!this.isFulfilled()) throw new TypeError;
+  return this._s.value();
+};
+
+Inspection.prototype.error = function() {
+  if(!this.isRejected()) throw new TypeError;
+  var val = this._s.value();
+  if(error.isWrapped(val)) return error.unwrap(val);
+  return val;
+};
+
+Inspection.prototype.isThrown = function() {
+  return this._s.state() === state.THROWN;
+};
+
+Inspection.prototype.isRejected = function() {
+  return this._s.state() === state.REJECTED || this.isThrown();
+};
+
+Inspection.prototype.isFulfilled = function() {
+  return this._s.state() === state.FULFILLED;
+};
+
+module.exports = Inspection;
+
+},{"./error":3,"./state":7,"./state-container":6}],6:[function(_dereq_,module,exports){
+'use strict';
+
+function DeferredStateContainer(deferred) {
+  this.d = deferred;
+}
+DeferredStateContainer.prototype.state = function() { return this.d._state; };
+DeferredStateContainer.prototype.value = function() { return this.d._value; };
+
+
+function SyncStateContainer(state, value) {
+  this._s = state;
+  this._v = value;
+}
+SyncStateContainer.prototype.state = function() { return this._s; };
+SyncStateContainer.prototype.value = function() { return this._v; };
+
+module.exports = function(state, value) {
+  if(typeof state === 'number') return new SyncStateContainer(state, value);
+  return new DeferredStateContainer(state);
+};
+
+},{}],7:[function(_dereq_,module,exports){
+'use strict';
+
+// Deferred state constants.
+exports.REJECTED = 0;
+exports.FULFILLED = 1;
+exports.PENDING = 2;
+exports.THROWN = 3;
+
+},{}],8:[function(_dereq_,module,exports){
+'use strict';
+
+var Deferred = _dereq_('../deferred/deferred').Deferred,
+    Flyweight = _dereq_('../deferred/flyweight'),
+    Semaphore = _dereq_('./semaphore'),
+    state = _dereq_('../deferred/state'),
+    Inspection = _dereq_('../deferred/inspection');
 
 
 /*
@@ -712,7 +820,7 @@ exports.ferr = function(fn) {
 
 
 /*
- * ### holdup.allPromisesOrdered
+ * ### holdup.all
  *
  * Takes an arg list, array, array of arrays, arg lists of arrays... etc
  * containing promises.
@@ -720,29 +828,13 @@ exports.ferr = function(fn) {
  * Returns a promise that will be fulfilled if all the promises fulfill, and
  * will reject as soon as any of the promises reject.
  *
- * It will call its `then` callback with the array of all fulfilled promises,
- * in the order that they fulfilled. It will call its `then` errback with the
- * first promise to reject.
+ * It will call its `then` callback with the array of all fulfilled values,
+ * in the order that their respective promises were passed in. It will call its
+ * `then` errback with the first promise to reject.
  */
 
-exports.allPromisesOrdered = function() {
-  var composed = compose(extract(arguments), true, false);
-
-  return exports.make(function(fulfill, reject) {
-    composed.promise.then(
-      function() { fulfill(composed.fulfilled); },
-      function() { reject(composed.rejected[0]); }
-    );
-  });
-};
-
 exports.all = function() {
-  var promises = extract(arguments);
-  return exports.allPromisesOrdered(promises).then(function() {
-    return collect(promises, false);
-  }, function(errP) {
-    return errP.error(function(e) { return exports.reject(e); });
-  });
+  return composeUnwrapped(extract(arguments), true, false);
 };
 
 
@@ -760,29 +852,13 @@ exports.all = function() {
  * `then` errback with the first promise to fulfill.
  */
 
-exports.noPromisesOrdered = function() {
-  var composed = compose(extract(arguments), false, true);
-
-  return exports.make(function(fulfill, reject) {
-    composed.promise.then(
-      function() { fulfill(composed.rejected); },
-      function() { reject(composed.fulfilled[0]); }
-    );
-  });
-};
-
 exports.none = function() {
-  var promises = extract(arguments);
-  return exports.noPromisesOrdered(promises).then(function() {
-    return collect(promises, true);
-  }, function(fulfilled) {
-    return fulfilled.then(function(data) { return exports.reject(data); });
-  });
+  return composeUnwrapped(extract(arguments), false, true);
 };
 
 
 /*
- * ### holdup.resolved
+ * ### holdup.settled
  *
  * Takes an arg list, array, array of arrays, arg list of arrays... etc
  * containing promises.
@@ -790,44 +866,65 @@ exports.none = function() {
  * Returns a promise that will be fulfilled once all of the given promises
  * are no longer in a pending state; i.e., once they've each been rejected
  * or fulfilled. The promises don't have to end in the same state: they only
- * have to leave the pending state.
+ * have to leave the pending state. The returned promise will never reject.
  *
- * The returned promise will call its `then` callback with a hash containing
- * two keys: `fulfilled` and `rejected`. The `fulfilled` key has an array of
- * all fulfilled promises in the order that they fulfilled, and the `rejected`
- * key has an array of all rejected promises in the order that they rejected.
- * If no promises fulfilled, the `fulfilled` key will point to an empty array;
- * if no promises rejected, the `rejected` key will similarly point to an
- * empty list.
+ * The returned promise will call its `then` callback with an array of promise
+ * Inspection instances, with each inspection in the order that its respective
+ * promise was passed in.
  */
 
-exports.resolvedPromisesOrdered = function() {
-  var composed = compose(extract(arguments), true, true);
-
-  return exports.make(function(fulfill, reject) {
-    composed.promise.then(function() {
-      fulfill({
-        fulfilled: composed.fulfilled,
-        rejected: composed.rejected
-      });
-    });
-  });
-};
-
 exports.resolved = exports.settled = exports.allSettled = function() {
-  var promises = extract(arguments);
-  return exports.resolvedPromisesOrdered(promises).then(function() {
-    var inspections = [];
-    for(var i = 0, l = promises.length; i < l; i++) {
-      inspections.push(promises[i].inspect());
+  var insertion, curr, capture,
+      promises = extract(arguments),
+      deferred = new Deferred,
+      inspections = new Array(promises.length),
+      sem = new Semaphore(
+        promises.length,
+        function() { deferred.fulfill(inspections); }
+      ),
+      dec = bind(sem.decrement, sem);
+
+  for(var i = 0, l = promises.length; i < l; i++) {
+    insertion = insert(inspections, i);
+    curr = promises[i];
+    capture = composeFns(dec, insertion);
+
+    if(curr instanceof Deferred || curr instanceof Flyweight) {
+      curr.then(inspection(state.FULFILLED, capture));
+      curr.unthrownError(inspection(state.REJECTED, capture));
+      curr.thrownError(inspection(state.THROWN, capture));
+    } else {
+      curr.then(
+        inspection(state.FULFILLED, capture),
+        inspection(state.REJECTED, capture)
+      );
     }
-    return inspections;
-  });
+  }
+
+  return deferred;
 };
+
+function inspection(state, callback) {
+  return function(val) {
+    callback(new Inspection(state, val));
+  };
+}
+
+function insert(array, index) {
+  return function(element) {
+    array[index] = element;
+  };
+}
+
+function composeFns(a, b) {
+  return function() {
+    a(b.apply(undefined, arguments));
+  };
+}
 
 
 /*
- * ### holdup.firstFulfilled
+ * ### holdup.firstValue
  *
  * Takes an arg list, array, array of arrays, arg list of arrays... etc
  * containing promises.
@@ -836,33 +933,18 @@ exports.resolved = exports.settled = exports.allSettled = function() {
  * given promises fulfills, and will reject if none of the promises fulfill.
  *
  * The returned promise will call its `then` callback with the first
- * fulfilled promise, and will call its `then` errback with the array of all
- * rejected promises in the order that they rejected.
+ * fulfilled value, and will call its `then` errback with the array of all
+ * rejected errors in the order that their respective promises were passed in.
  */
-
-exports.firstFulfilled = exports.ff = function() {
-  var promise = exports.noPromisesOrdered(extract(arguments));
-
-  return exports.make(function(fulfill, reject) {
-    promise.then(reject, fulfill);
-  });
-};
 
 exports.firstValue = exports.race = function() {
   var promises = extract(arguments);
-
-  return exports.ff(promises).then(function(first) {
-    return first.inspect().value();
-  }, function() {
-    return collect(promises, true).then(function(errors) {
-      return exports.reject(errors);
-    });
-  });
-}
+  return exports.invert(exports.none(promises));
+};
 
 
 /*
- * ### holdup.firstRejected
+ * ### holdup.firstError
  *
  * Takes an arg list, array, array of arrays, arg list of arrays... etc
  * containing promises.
@@ -870,33 +952,19 @@ exports.firstValue = exports.race = function() {
  * Returns a promise that will be fulfilled as soon as the first of the
  * given promises rejects, and will reject if none of the promises reject.
  *
- * The returned promise will call its `then` callback with the first
- * rejected promise, and will call its `then` errback with the array of all
- * fulfilled promises in the order that they fulfilled.
+ * The returned promise will call its `then` callback with the first rejection
+ * reason, and will call its `then` errback with the array of all fulfilled
+ * values in the order that their respective promises were passed in.
  */
-
-exports.firstRejected = exports.fr = function() {
-  var promise = exports.allPromisesOrdered(extract(arguments));
-
-  return exports.make(function(fulfill, reject) {
-    promise.then(reject, fulfill);
-  });
-};
 
 exports.firstError = function() {
   var promises = extract(arguments);
-  return exports.fr(promises).then(function(first) {
-    return first.inspect().error();
-  }, function() {
-    return collect(promises, false).then(function(data) {
-      return exports.reject(data);
-    });
-  });
+  return exports.invert(exports.all(promises));
 };
 
 
 /*
- * ### holdup.lastFulfilled
+ * ### holdup.lastValue
  *
  * Takes an arg list, array, array of arrays, arg list of arrays... etc
  * containing promises.
@@ -905,38 +973,44 @@ exports.firstError = function() {
  * left their pending state, and at least one has fulfilled. It will reject
  * if all given promises reject.
  *
- * The returned promise will call its `then` callback with the last
+ * The returned promise will call its `then` callback with the value of the last
  * fulfilled promise, and will call its `then` errback with the array of all
- * rejected promises in the order that they rejected.
+ * rejection reasons in the order that the respective promises were passed in.
  */
 
-exports.lastFulfilled = exports.lf = function() {
-  var promise = exports.resolvedPromisesOrdered(extract(arguments));
-
-  return exports.make(function(fulfill, reject) {
-    promise.then(function(promises) {
-      var fulfilled = promises.fulfilled,
-          rejected = promises.rejected;
-      if(fulfilled.length === 0) reject(rejected);
-      else fulfill(fulfilled[fulfilled.length - 1]);
-    });
-  });
-};
-
 exports.lastValue = function() {
-  var promises = extract(arguments);
-  return exports.lastFulfilled(promises).then(function(last) {
-    return last.inspect().value();
-  }, function() {
-    return collect(promises, false).then(function(data) {
-      return exports.reject(data);
+  var lastValue, i, l, settled,
+      called = false,
+      promises = extract(arguments);
+
+  function updateLastValue(val) {
+    called = true;
+    lastValue = val;
+  }
+  for(var i = 0, l = promises.length; i < l; i++) {
+    promises[i].then(updateLastValue);
+  }
+
+  settled = exports.settled(promises);
+  return exports.make(function(fulfill, reject) {
+    settled.then(function(inspections) {
+      var reasons, i, l;
+      if(!called) {
+        reasons = [];
+        for(i = 0, l = inspections.length; i < l; i++) {
+          reasons.push(inspections[i].error());
+        }
+        reject(reasons);
+        return;
+      }
+      fulfill(lastValue);
     });
   });
 };
 
 
 /*
- * ### holdup.lastRejected
+ * ### holdup.lastError
  *
  * Takes an arg list, array, array of arrays, arg list of arrays... etc
  * containing promises.
@@ -945,31 +1019,38 @@ exports.lastValue = function() {
  * left their pending state, and at least one has rejected. It will reject
  * if all given promises fulfill.
  *
- * The returned promise will call its `then` callback with the first
- * rejected promise, and will call its `then` errback with the array of all
- * fulfilled promises in the order that they fulfilled.
+ * The returned promise will call its `then` callback with the rejection reason
+ * of the last rejected promise, and will call its `then` errback with the array
+ * of all fulfilled promise values in the order that their respective promises
+ * were passed in.
  */
 
-exports.lastRejected = exports.lr = function() {
-  var promise = exports.resolvedPromisesOrdered(extract(arguments));
-
-  return exports.make(function(fulfill, reject) {
-    promise.then(function(promises) {
-      var fulfilled = promises.fulfilled,
-          rejected = promises.rejected;
-      if(rejected.length === 0) reject(fulfilled);
-      else fulfill(rejected[rejected.length - 1]);
-    });
-  });
-};
-
 exports.lastError = function() {
-  var promises = extract(arguments);
-  return exports.lastRejected(promises).then(function(last) {
-    return last.inspect().error();
-  }, function() {
-    return collect(promises, true).then(function(data) {
-      return exports.reject(data);
+  var last, i, l, settled,
+      called = false,
+      promises = extract(arguments);
+
+  function updateLast(val) {
+    called = true;
+    last = val;
+  }
+  for(var i = 0, l = promises.length; i < l; i++) {
+    promises[i].then(null, updateLast);
+  }
+
+  settled = exports.settled(promises);
+  return exports.make(function(fulfill, reject) {
+    settled.then(function(inspections) {
+      var values, i, l;
+      if(!called) {
+        values = [];
+        for(i = 0, l = inspections.length; i < l; i++) {
+          values.push(inspections[i].value());
+        }
+        reject(values);
+        return;
+      }
+      fulfill(last);
     });
   });
 };
@@ -1000,73 +1081,50 @@ exports.invert = function(promise) {
  * ---------------------------------------------------------------------------
  */
 
+
+/*
+ * ### holdup.spread
+ *
+ * Given a promise and a callback, calls the callback by applying the fulfilled
+ * value of the promise to the callback.
+ *
+ * For example:
+ *
+ *     var a = holdup.fulfill(10),
+ *         b = holdup.fulfill(11),
+ *         c = holdup.all(a, b);
+ *
+ *     holdup.spread(c, function(aValue, bValue) {
+ *       // aValue is 10
+ *       // bValue is 11
+ *     });
+ */
+
 exports.spreadValues = exports.spread = function(promise, callback) {
   promise.then(function(arrish) { callback.apply(undefined, arrish); });
 };
+
+
+/*
+ * ### holdup.spreadErrors
+ *
+ * Given a promise and a callback, calls the callback by applying the rejected
+ * error of the promise to the callback.
+ *
+ * For example:
+ *
+ *     var a = holdup.reject(['nope', 'definitely not']),
+ *
+ *     holdup.spreadErrors(a, function(firstError, secondError) {
+ *       // firstError is 'nope'
+ *       // secondError is 'definitely not'
+ *     });
+ */
 
 exports.spreadErrors = function(promise, callback) {
   promise.then(undefined, function(arrish) {
     callback.apply(undefined, arrish);
   });
-};
-
-/*
- * ### holdup.data
- *
- * Takes a list of promises (in array or arg list form) containing promises,
- * and a callback function.
- *
- * Calls the callback function with the data from the promises' `then`
- * callbacks, ordered according to the promises' ordering in the arguments.
- *
- * For example:
- *
- *     holdup.data(a, b, c, function(aData, bData, cData) {
- *       // do things with the data from a, b, and c
- *     });
- *
- * The callback will only be called once all promises have resolved. If
- * promises are resolved in a rejected state, their corresponding data will be
- * passed in as `undefined`.
- */
-
-exports.data = function() {
-  var args = argArray(arguments),
-      promises = extract(args.slice(0, args.length - 1)),
-      composed = collect(promises, false),
-      callback = args[args.length - 1];
-  composed.then(function(data) { callback.apply(null, data); });
-  return composed;
-};
-
-
-/*
- * ### holdup.errors
- *
- * Takes a list of promises (in array or arg list form) containing promises,
- * and a callback function.
- *
- * Calls the callback function with the errors from the promises' `then`
- * errbacks, ordered according to the promises' ordering in the arguments.
- *
- * For example:
- *
- *     holdup.errors(a, b, c, function(aError, bError, cError) {
- *       // do things with the errors from a, b, and c
- *     });
- *
- * The callback will only be called once all promises have resolved. If
- * promises are resolved in a fulfilled state, their corresponding error will
- * be passed in as `undefined`.
- */
-
-exports.errors = function() {
-  var args = argArray(arguments),
-      promises = extract(args.slice(0, args.length - 1)),
-      composed = collect(promises, true),
-      callback = args[args.length - 1];
-  composed.then(function(data) { callback.apply(null, data); });
-  return composed;
 };
 
 
@@ -1315,11 +1373,49 @@ exports.nodeify = function(promise, callback) {
  * ---------------------------------------------------------------------------
  */
 
+function composeUnwrapped(promises, decF, decR, transform) {
+  var curr, index, length, err,
+      collection = new Array(promises.length),
+      promise = new Deferred,
+      sem = new Semaphore(
+        promises.length,
+        function() { promise.fulfill(collection); },
+        bind(promise.reject, promise)
+      );
+  err = function(e) {
+    if(transform) sem.error(transform(e));
+    else sem.error(e);
+  };
+
+  for(index = 0, length = promises.length; index < length; index++) {
+    curr = promises[index];
+    curr.then(
+      decF ? insertUnwrapped(collection, index, sem, transform) : err,
+      decR ? insertUnwrapped(collection, index, sem, transform) : err
+    );
+  }
+
+  return promise;
+}
+
+function insertUnwrapped(collection, index, semaphore, transform) {
+  return function(el) {
+    collection[index] = transform ? transform(el) : el;
+    semaphore.decrement();
+  };
+}
+
+function blankUnwrapped(semaphore) {
+  return function() {
+    semaphore.decrement();
+  };
+}
+
 function collect(promises, inverse) {
   var curr, index, length,
       collection = new Array(promises.length),
       promise = new Deferred,
-      sem = semaphore(
+      sem = new Semaphore(
         promises.length,
         bind(promise.fulfill, promise),
         bind(promise.reject, promise)
@@ -1350,82 +1446,6 @@ function collect(promises, inverse) {
   return promise.then(function() { return collection; });
 }
 
-function compose(promises, decF, decR) {
-  var fulfilled = [],
-      rejected = [],
-      collectF = function(promise) { fulfilled.push(promise); },
-      collectR = function(promise) { rejected.push(promise); },
-      fulfillBack = decF ? decrement(collectF) : errorOut(collectF),
-      rejectBack = decR ? decrement(collectR) : errorOut(collectR);
-
-  return {
-    fulfilled: fulfilled,
-    rejected: rejected,
-    promise: composeHelper(promises, fulfillBack, rejectBack)
-  };
-}
-
-function composeHelper(promises, callbackComposer, errbackComposer) {
-  var index, curr, sem,
-      promise = new Deferred;
-
-  if(promises.length === 0) {
-    promise.fulfill([]);
-    return promise;
-  }
-
-  sem = semaphore(
-    promises.length,
-    bind(promise.fulfill, promise),
-    bind(promise.reject, promise)
-  );
-
-  for(index = 0; curr = promises[index]; index++) {
-    curr.then(callbackComposer(sem, curr), errbackComposer(sem, curr));
-  }
-
-  return promise;
-}
-
-function semaphore(length, callback, errback) {
-  var count = length,
-      errored = false;
-  var sem = {
-    decrement: function() {
-      if(errored) return;
-      count--;
-      if(count === 0) callback();
-    },
-    error: function() {
-      if(!errored) {
-        errored = true;
-        errback.apply(arguments);
-      }
-    }
-  };
-
-  if(count === 0) callback();
-  return sem;
-}
-
-function decrement(collector) {
-  return function(sem, promise) {
-    return function() {
-      if(collector) collector(promise);
-      sem.decrement();
-    };
-  };
-}
-
-function errorOut(collector) {
-  return function(sem, promise) {
-    return function() {
-      if(collector) collector(promise);
-      sem.error();
-    };
-  };
-}
-
 function bind(fn, scope) {
   return function() { fn.apply(scope, arguments); };
 }
@@ -1450,57 +1470,32 @@ function argArray(args, start, end) {
   return Array.prototype.slice.call(args, start || 0, end || args.length);
 }
 
-},{"./deferred":2}],5:[function(_dereq_,module,exports){
-'use strict';
+},{"../deferred/deferred":2,"../deferred/flyweight":4,"../deferred/inspection":5,"../deferred/state":7,"./semaphore":9}],9:[function(_dereq_,module,exports){
 
-var state = _dereq_('./state'),
-    error = _dereq_('./error');
+function Semaphore(size, callback, errback) {
+  this.size = size;
+  this.callback = callback;
+  this.errback = errback;
+  this.errored = false;
 
-function Inspection(deferred) {
-  this._d = deferred;
+  if(size === 0) callback();
 }
 
-Inspection.prototype.value = function() {
-  if(!this.isFulfilled()) throw new TypeError;
-  return this._d._value;
+Semaphore.prototype.decrement = function() {
+  if(this.errored) return;
+  this.size--;
+  if(this.size === 0) this.callback();
 };
 
-Inspection.prototype.error = function() {
-  if(!this.isRejected()) throw new TypeError;
-  var val = this._d._value;
-  if(error.isWrapped(val)) return error.unwrap(val);
-  return val;
-}
-
-Inspection.prototype.isThrown = function() {
-  return inState(this._d, state.THROWN);
-  return this._d._value;
+Semaphore.prototype.error = function() {
+  if(this.errored) return;
+  this.errored = true;
+  this.errback.apply(undefined, arguments);
 };
 
-Inspection.prototype.isRejected = function() {
-  return inState(this._d, state.REJECTED) || this.isThrown();
-};
+module.exports = Semaphore;
 
-Inspection.prototype.isFulfilled = function() {
-  return inState(this._d, state.FULFILLED);
-};
-
-function inState(deferred, state) {
-  return deferred._state === state;
-}
-
-module.exports = Inspection;
-
-},{"./error":3,"./state":6}],6:[function(_dereq_,module,exports){
-'use strict';
-
-// Deferred state constants.
-exports.REJECTED = 0;
-exports.FULFILLED = 1;
-exports.PENDING = 2;
-exports.THROWN = 3;
-
-},{}],7:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};

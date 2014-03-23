@@ -1,6 +1,6 @@
-var Deferred = require('./lib/deferred').Deferred,
-    holdup = require('./lib/holdup'),
-    error = require('./lib/error');
+var Deferred = require('./lib/deferred/deferred').Deferred,
+    holdup = require('./lib/holdup/holdup'),
+    error = require('./lib/deferred/error');
 
 holdup.Deferred = Deferred;
 holdup.on = error.events.on;
