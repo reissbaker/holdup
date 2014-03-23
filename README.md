@@ -257,7 +257,9 @@ rejected promises, in the order that they rejected. It will call its `then`
 errback with the first promise to fulfill.
 
 
-##### holdup.resolved
+##### holdup.settled
+
+*alias: `holdup.resolved`, `holdup.allSettled`*
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
