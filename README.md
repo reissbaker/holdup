@@ -21,7 +21,7 @@
 </a>
 
 
-Holdup is a tiny but full-featured flow-control library that makes working with
+Holdup is a small but full-featured flow-control library that makes working with
 promises or callbacks in Javascript easy. With Holdup you define the
 dependencies of your functions and it executes them for you with maximal
 concurrency: you don't have to explicitly state whether they're parallel or
@@ -31,7 +31,7 @@ Holdup runs in Node, Component-spec environments, and ordinary browsers; it has
 no dependencies and is extensively unit-tested. It works with any CommonJS
 Promises/A or Promises/A+ compliant promise implementation; it also provides
 its own Promises/A+ compliant promise implementation. It clocks in at a skinny
-3.2k minified and gzipped.
+3.7k minified and gzipped.
 
 
 Examples
