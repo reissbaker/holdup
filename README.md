@@ -185,7 +185,7 @@ Manipulating Promises
 --------------------------------------------------------------------------------
 
 
-##### holdup.all
+##### holdup.all(promises...)
 
 Takes an arg list, array, array of arrays, arg lists of arrays... etc
 containing promises.
@@ -198,7 +198,7 @@ order that their respective promises were passed in. It will call its `then`
 errback with the first promise to reject.
 
 
-##### holdup.none
+##### holdup.none(promises...)
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -211,7 +211,7 @@ rejected promises, in the order that they rejected. It will call its `then`
 errback with the first promise to fulfill.
 
 
-##### holdup.settled
+##### holdup.settled(promises...)
 
 *alias: `holdup.resolved`, `holdup.allSettled`*
 
@@ -228,7 +228,7 @@ Inspection instances, with each inspection in the order that its respective
 promise was passed in.
 
 
-##### holdup.firstValue
+##### holdup.firstValue(promises...)
 
 *alias: `holdup.race`*
 
@@ -243,7 +243,7 @@ value, and will call its `then` errback with the array of all rejected errors
 in the order that their respective promises were passed in.
 
 
-##### holdup.firstError
+##### holdup.firstError(promises...)
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -256,7 +256,7 @@ reason, and will call its `then` errback with the array of all fulfilled values
 in the order that their respective promises were passed in.
 
 
-##### holdup.lastValue
+##### holdup.lastValue(promises...)
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc containing
 promises.
@@ -270,7 +270,7 @@ fulfilled promise, and will call its `then` errback with the array of all
 rejection reasons in the order that the respective promises were passed in.
 
 
-##### holdup.lastError
+##### holdup.lastError(promises...)
 
 Takes an arg list, array, array of arrays, arg list of arrays... etc
 containing promises.
