@@ -132,54 +132,6 @@ documentation.
 API
 ================================================================================
 
-Promise Methods
---------------------------------------------------------------------------------
-
-Promises created by Holdup are Promises/A+ compliant and expose the following
-methods:
-
-##### promise.then(onFulfilled, onRejected)
-
-Given optional callbacks to be called on promise fulfillment or rejection,
-returns a new promise that will adopt the state of the `onFulfilled` callback
-if `promise` fulfills, or will adopt the state of `promise` otherwise.
-
-
-##### promise.error(onRejected)
-
-An alias for `promise.then(null, onRejected)`.
-
-
-##### promise.error(ErrorClass, onRejected)
-
-Similar to a call to `promise.error(onRejected)`, except that `onRejected` will
-only be called if the given rejection reason is an instance of `ErrorClass`.
-
-
-##### promise.thrown(onThrown)
-
-*:warning: Warning: `promise.thrown` is not interoperable with other
-Promises/A+ spec libraries; the Promises/A+ spec doesn't make it possible in a
-general case to tell whether a promise has rejected due to a thrown error, or
-whether it rejected for a different reason. If you need the functionality of
-`promise.thrown` — for example, if you're running in Node and follow the [Node
-core team's recommendation to shutdown on thrown errors to avoid memory
-leaks][guide] — it's recommended that you not use Holdup in conjunction with
-other Promise libraries.*
-
-[guide]: http://nodejs.org/api/domain.html#domain_warning_don_t_ignore_errors
-
-Similar to a call to `promise.then(null, onThrown)`, except that `onThrown`
-will be called only if the promise rejects due to a thrown error.
-
-
-##### promise.thrown(ThrownClass, onThrown)
-
-Similar to a call to `promise.thrown(onThrown)`, except that `onThrown` will be
-called only if the given rejection reason is an instance of `ThrownClass`.
-
-
-
 Creating Promises
 --------------------------------------------------------------------------------
 
@@ -518,6 +470,54 @@ Given a promise and a Node-style callback, calls the callback with the correct
 `data` and `err` arguments when the promise fulfills or rejects.  Useful for
 creating dual promise/callback APIs, or for using promises internally but
 exposing only a callback API.
+
+
+
+Promise Methods
+--------------------------------------------------------------------------------
+
+Promises created by Holdup are Promises/A+ compliant and expose the following
+methods:
+
+##### promise.then(onFulfilled, onRejected)
+
+Given optional callbacks to be called on promise fulfillment or rejection,
+returns a new promise that will adopt the state of the `onFulfilled` callback
+if `promise` fulfills, or will adopt the state of `promise` otherwise.
+
+
+##### promise.error(onRejected)
+
+An alias for `promise.then(null, onRejected)`.
+
+
+##### promise.error(ErrorClass, onRejected)
+
+Similar to a call to `promise.error(onRejected)`, except that `onRejected` will
+only be called if the given rejection reason is an instance of `ErrorClass`.
+
+
+##### promise.thrown(onThrown)
+
+*:warning: Warning: `promise.thrown` is not interoperable with other
+Promises/A+ spec libraries; the Promises/A+ spec doesn't make it possible in a
+general case to tell whether a promise has rejected due to a thrown error, or
+whether it rejected for a different reason. If you need the functionality of
+`promise.thrown` — for example, if you're running in Node and follow the [Node
+core team's recommendation to shutdown on thrown errors to avoid memory
+leaks][guide] — it's recommended that you not use Holdup in conjunction with
+other Promise libraries.*
+
+[guide]: http://nodejs.org/api/domain.html#domain_warning_don_t_ignore_errors
+
+Similar to a call to `promise.then(null, onThrown)`, except that `onThrown`
+will be called only if the promise rejects due to a thrown error.
+
+
+##### promise.thrown(ThrownClass, onThrown)
+
+Similar to a call to `promise.thrown(onThrown)`, except that `onThrown` will be
+called only if the given rejection reason is an instance of `ThrownClass`.
 
 
 
